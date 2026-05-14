@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHealthStore } from '@/store/useHealthStore';
 import { useRouter } from 'next/navigation';
 import { NewHealthRecord } from '@/types';
-import { Save } from 'lucide-react';
+import { Save, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function InputPage() {
@@ -35,6 +35,61 @@ export default function InputPage() {
       parsedValue = value === '' ? 0 : parseFloat(value);
     }
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
+  };
+
+  useEffect(() => {
+    const handleMessage = (event: any) => {
+      try {
+        let data;
+        if (typeof event.data === 'string') {
+          data = JSON.parse(event.data);
+        } else {
+          data = event.data;
+        }
+
+        if (data?.type === 'HEALTH_DATA_RESULT') {
+          console.log('Received Health Data:', data.payload);
+          
+          const latestWeight = data.payload?.weight?.[0]?.weight?.inKilograms;
+          const latestBodyFat = data.payload?.bodyFat?.[0]?.percentage;
+          
+          let latestSleep = undefined;
+          const sleepRecord = data.payload?.sleep?.[0];
+          if (sleepRecord) {
+             const start = new Date(sleepRecord.startTime).getTime();
+             const end = new Date(sleepRecord.endTime).getTime();
+             latestSleep = (end - start) / (1000 * 60 * 60);
+          }
+
+          setFormData((prev) => ({
+            ...prev,
+            ...(latestWeight ? { weight: parseFloat(latestWeight.toFixed(1)) } : {}),
+            ...(latestBodyFat ? { body_fat: parseFloat(latestBodyFat.toFixed(1)) } : {}),
+            ...(latestSleep ? { sleep_hours: parseFloat(latestSleep.toFixed(1)) } : {}),
+          }));
+          
+          alert('건강 데이터가 성공적으로 불러와졌습니다!');
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    document.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      document.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  const requestHealthData = () => {
+    const rnWindow = window as any;
+    if (rnWindow.ReactNativeWebView) {
+      rnWindow.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_HEALTH_DATA' }));
+    } else {
+      alert('삼성 헬스/인바디 자동 연동은 모바일 앱 환경에서만 작동합니다.');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,7 +124,17 @@ export default function InputPage() {
 
           {/* 기본 체성분 */}
           <section aria-labelledby="basic-section" className="bg-[var(--surface-1)] p-8 rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] space-y-6">
-            <h2 id="basic-section" className="text-xl font-bold text-[var(--text-primary)]">기본 체성분</h2>
+            <div className="flex items-center justify-between">
+              <h2 id="basic-section" className="text-xl font-bold text-[var(--text-primary)]">기본 체성분</h2>
+              <button 
+                type="button" 
+                onClick={requestHealthData}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1428A0] text-white text-xs font-bold rounded-lg hover:bg-blue-800 transition-colors shadow-sm"
+              >
+                <Activity className="w-3.5 h-3.5" />
+                삼성 헬스 연동
+              </button>
+            </div>
 
             <div>
               <label htmlFor="date" className={labelClass}>날짜</label>
