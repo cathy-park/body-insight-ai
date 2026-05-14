@@ -156,12 +156,34 @@ body {
 }
 
 /* ─── Page fade-in ───────────────────────────────────────────── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+/*
+  Split into two separate animations so the wrapper NEVER creates a
+  persistent CSS stacking context:
+    • fadeIn uses 'both' fill → final opacity:1 → no stacking context (only opacity<1 does)
+    • slideUp uses no fill → transform returns to 'none' after end → no stacking context
+  Without this split, 'transform:translateY(0)' frozen via 'both' fill would
+  create a stacking context that causes fixed/absolute modals inside to paint
+  behind elements (e.g. the nav at z-50) in the root stacking context.
+*/
+@keyframes _fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes _slideUp {
+  from { transform: translateY(12px); }
 }
 .animate-fade-up {
-  animation: fadeUp 0.35s ease-out both;
+  animation: _fadeIn 0.35s ease-out both,
+             _slideUp 0.35s ease-out;
+}
+
+/* ─── Toast entrance (replaces missing tailwindcss-animate plugin) ── */
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translate(-50%, 0.75rem); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.animate-toast-in {
+  animation: toastSlideIn 0.25s ease-out forwards;
 }
 
 /* ─── Gradient text ──────────────────────────────────────────── */

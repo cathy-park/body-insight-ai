@@ -33,3 +33,17 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
 }
+
+export interface UserSettings {
+  height: number;         // cm
+  targetWeight: number | null;
+  reminderEnabled: boolean;
+  reminderTime: string;   // "HH:mm"
+}
+
+export const DEFAULT_SETTINGS: UserSettings = {
+  height: 165,
+  targetWeight: null,
+  reminderEnabled: false,
+  reminderTime: '20:00',
+};

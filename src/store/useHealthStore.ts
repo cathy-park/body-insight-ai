@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { HealthRecord, NewHealthRecord, UserProfile, ChatMessage } from '@/types';
+import { HealthRecord, NewHealthRecord, UserProfile, ChatMessage, UserSettings, DEFAULT_SETTINGS } from '@/types';
 
 interface HealthState {
   users: UserProfile[];
@@ -12,6 +12,9 @@ interface HealthState {
   userDocs: Record<string, any[]>;
   userChats: Record<string, ChatMessage[]>;
   lastBackupAt: string | null;
+  userSettings: Record<string, UserSettings>;
+  getUserSettings: () => UserSettings;
+  updateUserSettings: (partial: Partial<UserSettings>) => void;
 
   setCurrentUser: (id: string) => void;
   addUser: (name: string) => void;
@@ -49,6 +52,7 @@ export const useHealthStore = create<HealthState>()(
       userDocs: {},
       userChats: {},
       lastBackupAt: null,
+      userSettings: {},
 
       setCurrentUser: (id) => set({ currentUserId: id }),
       addUser: (name) => set((state) => ({
@@ -64,12 +68,14 @@ export const useHealthStore = create<HealthState>()(
         const { [id]: _n, ...newNotes } = state.userNotes;
         const { [id]: _d, ...newDocs } = state.userDocs;
         const { [id]: _c, ...newChats } = state.userChats;
+        const { [id]: _s, ...newSettings } = state.userSettings || {};
         return {
           users: remaining,
           userRecords: newRecords,
           userNotes: newNotes,
           userDocs: newDocs,
           userChats: newChats,
+          userSettings: newSettings,
           currentUserId: state.currentUserId === id ? remaining[0].id : state.currentUserId,
         };
       }),
@@ -78,7 +84,8 @@ export const useHealthStore = create<HealthState>()(
         const userId = state.currentUserId;
         const currentRecords = state.userRecords[userId] || [];
         const existingIdx = currentRecords.findIndex(r => r.date === newRecord.date);
-        const recordWithBmi = { ...newRecord, bmi: newRecord.bmi || parseFloat((newRecord.weight / Math.pow(1.7, 2)).toFixed(1)) } as HealthRecord;
+        const heightM = ((state.userSettings?.[userId]?.height ?? 165) / 100);
+        const recordWithBmi = { ...newRecord, bmi: newRecord.bmi || parseFloat((newRecord.weight / (heightM * heightM)).toFixed(1)) } as HealthRecord;
         let updated: HealthRecord[];
         if (existingIdx >= 0) {
           updated = [...currentRecords];
@@ -95,7 +102,8 @@ export const useHealthStore = create<HealthState>()(
         const updated = [...currentRecords];
         records.forEach(newR => {
           const idx = updated.findIndex(r => r.date === newR.date);
-          const recordWithBmi = { ...newR, bmi: newR.bmi || parseFloat((newR.weight / Math.pow(1.7, 2)).toFixed(1)) } as HealthRecord;
+          const heightM2 = ((state.userSettings?.[userId]?.height ?? 165) / 100);
+          const recordWithBmi = { ...newR, bmi: newR.bmi || parseFloat((newR.weight / (heightM2 * heightM2)).toFixed(1)) } as HealthRecord;
           if (idx >= 0) updated[idx] = { ...recordWithBmi, id: updated[idx].id, created_at: updated[idx].created_at };
           else updated.push({ ...recordWithBmi, id: Math.random().toString(36).substr(2, 9), created_at: new Date().toISOString() });
         });
@@ -138,6 +146,20 @@ export const useHealthStore = create<HealthState>()(
         userChats: { ...state.userChats, [state.currentUserId]: [] }
       })),
 
+      getUserSettings: () => {
+        const state = get();
+        return state.userSettings?.[state.currentUserId] ?? DEFAULT_SETTINGS;
+      },
+      updateUserSettings: (partial) => set((state) => ({
+        userSettings: {
+          ...state.userSettings,
+          [state.currentUserId]: {
+            ...(state.userSettings?.[state.currentUserId] ?? DEFAULT_SETTINGS),
+            ...partial,
+          },
+        },
+      })),
+
       exportData: () => {
         const now = new Date().toISOString();
         const data = {
@@ -147,6 +169,7 @@ export const useHealthStore = create<HealthState>()(
           userRecords: get().userRecords,
           userNotes: get().userNotes,
           userDocs: get().userDocs,
+          userSettings: get().userSettings,
         };
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
@@ -169,6 +192,7 @@ export const useHealthStore = create<HealthState>()(
             userRecords: data.userRecords || get().userRecords,
             userNotes: data.userNotes || get().userNotes,
             userDocs: data.userDocs || get().userDocs,
+            userSettings: data.userSettings || get().userSettings,
           });
           return true;
         } catch {

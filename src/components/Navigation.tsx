@@ -24,7 +24,7 @@ interface ToastState { message: string; type: 'success' | 'error'; }
 
 export function Navigation() {
   const pathname = usePathname();
-  const { users, currentUserId, setCurrentUser, addUser, updateUserName, deleteUser, clearCurrentUserData, exportData, importData } = useHealthStore();
+  const { users, currentUserId, setCurrentUser, addUser, updateUserName, deleteUser, clearCurrentUserData, exportData, importData, getUserSettings, getRecords } = useHealthStore();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -49,12 +49,39 @@ export function Navigation() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isProfileOpen]);
 
+  useEffect(() => {
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    const settings = getUserSettings();
+    if (!settings.reminderEnabled) return;
+
+    const [h, m] = settings.reminderTime.split(':').map(Number);
+    const now = new Date();
+    const reminderAt = new Date(now);
+    reminderAt.setHours(h, m, 0, 0);
+    if (now < reminderAt) return;
+
+    const today = now.toISOString().split('T')[0];
+    const hasTodayRecord = getRecords().some((r: any) => r.date === today);
+    if (hasTodayRecord) return;
+
+    const lastNotified = localStorage.getItem('reminder-last-date');
+    if (lastNotified === today) return;
+
+    new Notification('Body Insight AI', {
+      body: '오늘 건강 기록을 아직 입력하지 않으셨어요 💪',
+      icon: '/icon.png',
+    });
+    localStorage.setItem('reminder-last-date', today);
+  }, []);
+
   const showToast = (message: string, type: 'success' | 'error') => setToast({ message, type });
 
   const navItems = [
     { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
     { name: '건강 캘린더', href: '/calendar', icon: CalendarIcon },
     { name: '건강 자료실', href: '/warehouse', icon: Archive },
+    { name: '설정', href: '/settings', icon: Settings },
   ];
 
   const handleUpdateName = () => {

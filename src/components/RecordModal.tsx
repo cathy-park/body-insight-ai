@@ -5,6 +5,7 @@ import { useHealthStore } from '@/store/useHealthStore';
 import { NewHealthRecord } from '@/types';
 import { Save, Activity, X, Smartphone } from 'lucide-react';
 import { format } from 'date-fns';
+import { Toast } from '@/components/Toast';
 
 interface RecordModalProps {
   isOpen: boolean;
@@ -35,8 +36,9 @@ function Toggle({ name, checked, onChange, label, sub }: {
 }
 
 export function RecordModal({ isOpen, onClose }: RecordModalProps) {
-  const addRecord  = useHealthStore((state) => state.addRecord);
-  const getRecords = useHealthStore((state) => state.getRecords);
+  const addRecord      = useHealthStore((state) => state.addRecord);
+  const getRecords     = useHealthStore((state) => state.getRecords);
+  const getUserSettings = useHealthStore((state) => state.getUserSettings);
 
   const blankForm: NewHealthRecord = {
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -48,6 +50,8 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
   };
 
   const [formData, setFormData] = useState<NewHealthRecord>(blankForm);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error') => setToast({ message, type });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -107,15 +111,13 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
           ...(latestSleep   ? { sleep_hours: parseFloat(latestSleep.toFixed(1))  } : {}),
           ...(latestPeriod  ? { period_flag: true }                               : {}),
         }));
-        alert('삼성 헬스 건강 데이터를 성공적으로 불러왔습니다!');
+        showToast('삼성 헬스 건강 데이터를 성공적으로 불러왔습니다!', 'success');
       } catch { /* ignored */ }
     };
 
     window.addEventListener('message', handleMessage);
-    document.addEventListener('message', handleMessage);
     return () => {
       window.removeEventListener('message', handleMessage);
-      document.removeEventListener('message', handleMessage);
     };
   }, [isOpen]);
 
@@ -124,18 +126,18 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
     if (rnWindow.ReactNativeWebView) {
       rnWindow.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_HEALTH_DATA' }));
     } else {
-      alert('삼성 헬스 자동 연동은 모바일 앱 환경에서만 작동합니다.');
+      showToast('삼성 헬스 자동 연동은 모바일 앱 환경에서만 작동합니다.', 'error');
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.date || formData.weight <= 0) {
-      alert('날짜와 체중은 필수 입력 항목입니다.');
+      showToast('날짜와 체중은 필수 입력 항목입니다.', 'error');
       return;
     }
-    addRecord({ ...formData, bmi: parseFloat((formData.weight / Math.pow(1.7, 2)).toFixed(1)) });
-    alert('기록이 성공적으로 저장되었습니다.');
+    const h = (getUserSettings().height ?? 165) / 100;
+    addRecord({ ...formData, bmi: parseFloat((formData.weight / (h * h)).toFixed(1)) });
     onClose();
   };
 
@@ -146,6 +148,8 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
   const sectionClass = "bg-white p-5 rounded-2xl border border-[var(--border)] space-y-4 shadow-[var(--shadow-card)]";
 
   return (
+    <>
+    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] p-0 sm:p-4"
       role="dialog"
@@ -352,5 +356,6 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }

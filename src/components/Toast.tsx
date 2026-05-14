@@ -19,7 +19,7 @@ export function Toast({ message, type, onClose }: ToastProps) {
     <div
       role="alert"
       aria-live="assertive"
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-[var(--shadow-elevated)] text-sm font-bold max-w-[360px] w-max animate-in slide-in-from-bottom-4 fade-in duration-200 ${
+      className={`fixed bottom-6 left-1/2 z-[200] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-[var(--shadow-elevated)] text-sm font-bold max-w-[360px] w-max animate-toast-in ${
         type === 'success'
           ? 'bg-[var(--surface-dark)] text-white'
           : 'bg-rose-500 text-white'

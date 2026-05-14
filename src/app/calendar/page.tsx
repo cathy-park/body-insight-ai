@@ -39,10 +39,11 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const userRecords   = useHealthStore((state) => state.userRecords);
-  const currentUserId = useHealthStore((state) => state.currentUserId);
-  const records       = useMemo(() => userRecords[currentUserId] || [], [userRecords, currentUserId]);
-  const addRecord     = useHealthStore((state) => state.addRecord);
+  const userRecords    = useHealthStore((state) => state.userRecords);
+  const currentUserId  = useHealthStore((state) => state.currentUserId);
+  const records        = useMemo(() => userRecords[currentUserId] || [], [userRecords, currentUserId]);
+  const addRecord      = useHealthStore((state) => state.addRecord);
+  const getUserSettings = useHealthStore((state) => state.getUserSettings);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -87,7 +88,7 @@ export default function CalendarPage() {
       abdominal_fat_ratio:          formData.abdominal,
       waist_circumference_belly:    formData.waist_belly,
       waist_circumference_beauty:   formData.waist_beauty,
-      bmi:                          parseFloat((formData.weight / Math.pow(1.7, 2)).toFixed(1)),
+      bmi:                          (() => { const h = (getUserSettings().height ?? 165) / 100; return parseFloat((formData.weight / (h * h)).toFixed(1)); })(),
       sleep_hours:                  formData.sleep,
       alcohol_flag:                 formData.alcohol,
       bowel_condition:              formData.bowel,
