@@ -43,7 +43,6 @@ export function Navigation() {
 
   const navItems = [
     { name: '대시보드', href: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { name: '기록하기', href: '/input', icon: <PlusCircle className="w-4 h-4" /> },
     { name: '건강 캘린더', href: '/calendar', icon: <CalendarIcon className="w-4 h-4" /> },
     { name: '건강 자료실', href: '/warehouse', icon: <Archive className="w-4 h-4" /> },
   ];

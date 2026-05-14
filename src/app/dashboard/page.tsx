@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { AIAnalysis } from '@/components/AIAnalysis';
 import { SummaryCards } from '@/components/SummaryCards';
-import { UploadCSV } from '@/components/UploadCSV';
+import { RecordModal } from '@/components/RecordModal';
 
 type MetricKey = 'weight' | 'skeletal_muscle' | 'body_fat_mass' | 'body_fat' | 'visceral_fat_level' | 'abdominal_fat_ratio' | 'waist_circumference_belly' | 'waist_circumference_beauty';
 
@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const userRecords = useHealthStore((state) => state.userRecords);
   const currentUserId = useHealthStore((state) => state.currentUserId);
+  const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -109,17 +110,17 @@ export default function DashboardPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">나의 건강 대시보드</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">현재 당신의 건강 상태를 한눈에 확인하세요.</p>
         </div>
-        <Link
-          href="/input"
-          className="flex items-center gap-2 bg-[var(--accent)] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[var(--accent-hover)] transition-all shadow-sm self-start sm:self-auto shrink-0"
+        <button
+          onClick={() => setIsRecordModalOpen(true)}
+          className="flex items-center gap-2 bg-[var(--accent)] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[var(--accent-hover)] transition-all shadow-sm self-start sm:self-auto shrink-0 active:scale-95"
         >
           <PlusCircle className="w-4 h-4" />
           오늘 건강 기록하기
-        </Link>
+        </button>
       </header>
 
       {/* Filter bar + Upload */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-4">
         <div
           className="flex bg-[var(--surface-1)] p-1 rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-x-auto scrollbar-hide"
           role="group"
@@ -140,7 +141,6 @@ export default function DashboardPage() {
             </button>
           ))}
         </div>
-        <UploadCSV />
       </div>
 
       {/* Summary cards */}
@@ -229,17 +229,21 @@ export default function DashboardPage() {
                 <p className="text-sm font-medium text-[var(--text-secondary)]">아직 기록된 건강 데이터가 없습니다.</p>
                 <p className="text-xs text-[var(--text-muted)]">인바디, 삼성 헬스 데이터 등을 첫 기록해 보세요!</p>
               </div>
-              <Link
-                href="/input"
-                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl text-xs font-black shadow-sm transition-all"
+              <button
+                onClick={() => setIsRecordModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl text-xs font-black shadow-sm transition-all active:scale-95"
               >
                 <PlusCircle className="w-4 h-4" />
                 첫 데이터 입력하러 가기
-              </Link>
+              </button>
             </div>
           )}
         </div>
       </section>
+      <RecordModal 
+        isOpen={isRecordModalOpen} 
+        onClose={() => setIsRecordModalOpen(false)} 
+      />
     </div>
   );
 }
