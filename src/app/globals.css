@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --surface-0: #f8fafc;        /* page background */
+  --surface-1: #ffffff;        /* primary card */
+  --surface-2: #f8fafc;        /* nested / secondary surface */
+  --surface-dark: #0f172a;     /* intentional dark card (AI Analysis) */
+
+  /* Borders */
+  --border: #e2e8f0;           /* 1px card border */
+  --border-subtle: #f1f5f9;    /* very subtle inner divider */
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Accent */
+  --accent: #2563eb;           /* blue-600 */
+  --accent-hover: #1d4ed8;     /* blue-700 */
+  --accent-muted: #eff6ff;     /* blue-50 */
+  --accent-soft: #dbeafe;      /* blue-100 */
+
+  /* Semantic */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* Radius scale */
+  --radius-page: 1.5rem;       /* 24px — page-level cards */
+  --radius-card: 1rem;         /* 16px — inner sections */
+  --radius-btn: 0.75rem;       /* 12px — buttons & inputs */
+  --radius-tag: 9999px;        /* full — tags/chips/badges */
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-elevated: 0 4px 24px -4px rgb(0 0 0 / 0.08), 0 2px 8px -2px rgb(0 0 0 / 0.06);
+
+  --background: var(--surface-0);
+  --foreground: var(--text-primary);
+}
+
+/* ─── Base ───────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Focus ring (accessible, consistent) ───────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-btn);
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

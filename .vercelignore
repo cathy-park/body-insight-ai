@@ -1,0 +1,10 @@
+dist/
+out/
+.next/
+node_modules/
+*.dmg
+*.blockmap
+main.js
+preload.js
+image 1.png
+DESIGN.md
