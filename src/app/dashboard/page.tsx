@@ -13,9 +13,11 @@ import {
   LineChart,
   Line
 } from 'recharts';
+import Link from 'next/link';
 import {
   History,
   TrendingUp,
+  PlusCircle,
 } from 'lucide-react';
 import { AIAnalysis } from '@/components/AIAnalysis';
 import { SummaryCards } from '@/components/SummaryCards';
@@ -102,9 +104,18 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto pt-[92px] md:pt-[112px] px-5 sm:px-10 pb-24 space-y-8">
       
-      <header className="mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">나의 건강 대시보드</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">현재 당신의 건강 상태를 한눈에 확인하세요.</p>
+      <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">나의 건강 대시보드</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">현재 당신의 건강 상태를 한눈에 확인하세요.</p>
+        </div>
+        <Link
+          href="/input"
+          className="flex items-center gap-2 bg-[var(--accent)] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[var(--accent-hover)] transition-all shadow-sm self-start sm:self-auto shrink-0"
+        >
+          <PlusCircle className="w-4 h-4" />
+          오늘 건강 기록하기
+        </Link>
       </header>
 
       {/* Filter bar + Upload */}
@@ -212,9 +223,19 @@ export default function DashboardPage() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] gap-3 border-2 border-dashed border-[var(--border)] rounded-2xl">
-              <History className="w-10 h-10 opacity-30" aria-hidden="true" />
-              <p className="text-sm">기록된 데이터가 없습니다.</p>
+            <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] gap-4 border-2 border-dashed border-[var(--border)] rounded-2xl p-8">
+              <History className="w-12 h-12 opacity-20" aria-hidden="true" />
+              <div className="text-center space-y-1">
+                <p className="text-sm font-medium text-[var(--text-secondary)]">아직 기록된 건강 데이터가 없습니다.</p>
+                <p className="text-xs text-[var(--text-muted)]">인바디, 삼성 헬스 데이터 등을 첫 기록해 보세요!</p>
+              </div>
+              <Link
+                href="/input"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl text-xs font-black shadow-sm transition-all"
+              >
+                <PlusCircle className="w-4 h-4" />
+                첫 데이터 입력하러 가기
+              </Link>
             </div>
           )}
         </div>
