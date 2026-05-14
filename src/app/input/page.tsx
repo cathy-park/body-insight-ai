@@ -25,13 +25,17 @@ export default function InputPage() {
     alcohol_flag: false,
     bowel_condition: 'normal',
     period_flag: false,
+    mounjaro_flag: false,
+    mounjaro_dose: 0,
     memo: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     let parsedValue: any = value;
-    if (type === 'number') {
+    if (type === 'checkbox') {
+      parsedValue = (e.target as HTMLInputElement).checked;
+    } else if (type === 'number') {
       parsedValue = value === '' ? 0 : parseFloat(value);
     }
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
@@ -117,14 +121,14 @@ export default function InputPage() {
   const labelClass = "block text-[11px] font-black uppercase tracking-[0.15em] text-[var(--accent)] mb-2";
 
   return (
-    <div className="max-w-4xl mx-auto pt-[112px] px-4 sm:px-6 pb-24">
+    <div className="max-w-7xl mx-auto pt-[112px] px-4 sm:px-6 pb-24">
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">상세 데이터 기록</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1.5">정교한 분석을 위해 모든 지표를 입력해 주세요.</p>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* 기본 체성분 */}
           <section aria-labelledby="basic-section" className="bg-[var(--surface-1)] p-8 rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] space-y-6">
@@ -263,6 +267,105 @@ export default function InputPage() {
                 className="w-full px-4 py-3.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent outline-none transition-all resize-none text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                 placeholder="오늘의 건강 상태를 메모해 보세요."
               />
+            </div>
+          </section>
+
+          {/* 생활 패턴 & 치료 기록 */}
+          <section aria-labelledby="lifestyle-section" className="bg-[var(--surface-1)] p-8 rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] space-y-6">
+            <h2 id="lifestyle-section" className="text-xl font-bold text-[var(--text-primary)]">생활 패턴 & 치료</h2>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="sleep_hours" className={labelClass}>수면 시간 (시간)</label>
+                <input
+                  id="sleep_hours"
+                  type="number"
+                  step="0.5"
+                  name="sleep_hours"
+                  value={formData.sleep_hours || ''}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="7.0"
+                  inputMode="decimal"
+                />
+              </div>
+              <div>
+                <label htmlFor="bowel_condition" className={labelClass}>배변 상태</label>
+                <select
+                  id="bowel_condition"
+                  name="bowel_condition"
+                  value={formData.bowel_condition}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+                  <option value="good">좋음 🟢</option>
+                  <option value="normal">보통 🟡</option>
+                  <option value="bad">나쁨 🔴</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-3 bg-[var(--surface-2)] p-4 rounded-2xl border border-[var(--border)]">
+              <div className="flex items-center justify-between">
+                <label htmlFor="period_flag" className="text-sm font-bold text-[var(--text-primary)] cursor-pointer">생리 기간 활성화</label>
+                <input
+                  id="period_flag"
+                  type="checkbox"
+                  name="period_flag"
+                  checked={formData.period_flag}
+                  onChange={handleChange}
+                  className="w-5 h-5 rounded-md accent-[var(--accent)] cursor-pointer"
+                />
+              </div>
+              <div className="flex items-center justify-between border-t border-[var(--border)] pt-3">
+                <label htmlFor="alcohol_flag" className="text-sm font-bold text-[var(--text-primary)] cursor-pointer">오늘 음주 여부</label>
+                <input
+                  id="alcohol_flag"
+                  type="checkbox"
+                  name="alcohol_flag"
+                  checked={formData.alcohol_flag}
+                  onChange={handleChange}
+                  className="w-5 h-5 rounded-md accent-[var(--accent)] cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div className="bg-[var(--surface-2)] p-4 rounded-2xl border border-[var(--border)] space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <label htmlFor="mounjaro_flag" className="text-sm font-bold text-[var(--text-primary)] cursor-pointer">마운자로 투여</label>
+                  <span className="text-[10px] text-[var(--text-secondary)]">GLP-1 비만치료 주사</span>
+                </div>
+                <input
+                  id="mounjaro_flag"
+                  type="checkbox"
+                  name="mounjaro_flag"
+                  checked={formData.mounjaro_flag}
+                  onChange={handleChange}
+                  className="w-5 h-5 rounded-md accent-[var(--accent)] cursor-pointer"
+                />
+              </div>
+
+              {formData.mounjaro_flag && (
+                <div className="pt-2 border-t border-[var(--border)] animate-in fade-in duration-200">
+                  <label htmlFor="mounjaro_dose" className={labelClass}>투여 용량 (mg)</label>
+                  <select
+                    id="mounjaro_dose"
+                    name="mounjaro_dose"
+                    value={formData.mounjaro_dose}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2.5 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl font-bold text-[var(--text-primary)]"
+                  >
+                    <option value={0}>용량 선택</option>
+                    <option value={2.5}>2.5 mg</option>
+                    <option value={5.0}>5.0 mg</option>
+                    <option value={7.5}>7.5 mg</option>
+                    <option value={10.0}>10.0 mg</option>
+                    <option value={12.5}>12.5 mg</option>
+                    <option value={15.0}>15.0 mg</option>
+                  </select>
+                </div>
+              )}
             </div>
           </section>
         </div>

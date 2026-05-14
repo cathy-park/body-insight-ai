@@ -14,6 +14,8 @@ export interface HealthRecord {
   alcohol_flag: boolean;
   bowel_condition: 'good' | 'normal' | 'bad';
   period_flag: boolean;
+  mounjaro_flag?: boolean;
+  mounjaro_dose?: number; // mg 단위 (ex. 2.5, 5.0, 7.5 등)
   memo: string;
   created_at: string;
 }

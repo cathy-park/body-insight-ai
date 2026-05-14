@@ -10,6 +10,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
 } from 'recharts';
 
 interface ChartsProps {
@@ -55,10 +56,40 @@ export function Charts({ filteredRecords }: ChartsProps) {
         </div>
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartRecords} margin={{ top: 10, right: 10, bottom: 0, left: -20 }} barSize={12}>
+            <BarChart data={chartRecords} margin={{ top: 25, right: 10, bottom: 0, left: -20 }} barSize={12}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
               <XAxis dataKey="date" tick={axisStyle} tickLine={false} axisLine={false} />
               <YAxis tick={axisStyle} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
+              
+              {/* 생리 기간 연동 배경 표시 */}
+              {chartRecords.map((r, idx) => r.period_flag ? (
+                <ReferenceLine
+                  key={`period-${idx}`}
+                  x={r.date}
+                  stroke="rgba(244, 63, 94, 0.2)"
+                  strokeWidth={24}
+                  isFront={false}
+                />
+              ) : null)}
+
+              {/* 마운자로 투여일 연동 점선 및 주사기 표시 */}
+              {chartRecords.map((r, idx) => r.mounjaro_flag ? (
+                <ReferenceLine
+                  key={`mounjaro-${idx}`}
+                  x={r.date}
+                  stroke="#f59e0b"
+                  strokeDasharray="4 4"
+                  strokeWidth={1.5}
+                  label={{
+                    value: `💉 ${r.mounjaro_dose}mg`,
+                    position: 'top',
+                    fill: '#d97706',
+                    fontSize: 9,
+                    fontWeight: 'bold'
+                  }}
+                />
+              ) : null)}
+
               <Tooltip
                 cursor={{ fill: 'var(--surface-2)' }}
                 contentStyle={{
