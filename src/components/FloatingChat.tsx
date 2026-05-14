@@ -116,7 +116,7 @@ export function FloatingChat() {
           role="dialog"
           aria-modal="true"
           aria-label="AI 건강 주치의 채팅"
-          className="fixed bottom-24 right-6 w-[380px] h-[560px] bg-[var(--surface-1)] rounded-3xl shadow-[var(--shadow-elevated)] border border-[var(--border)] flex flex-col z-50 overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
+          className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[380px] h-[560px] bg-[var(--surface-1)] rounded-3xl shadow-[var(--shadow-elevated)] border border-[var(--border)] flex flex-col z-50 overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
         >
           {/* Header — dark, intentional exception within the chat UI */}
           <div className="bg-[var(--surface-dark)] text-white px-5 py-4 shrink-0">
@@ -282,10 +282,10 @@ export function FloatingChat() {
         onClick={() => setIsOpen(v => !v)}
         aria-label={isOpen ? 'AI 채팅 닫기' : 'AI 건강 주치의 열기'}
         aria-expanded={isOpen}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-[var(--shadow-elevated)] flex items-center justify-center transition-all z-50 ${
+        className={`fixed bottom-24 md:bottom-6 right-4 sm:right-6 w-14 h-14 rounded-full shadow-[var(--shadow-elevated)] flex items-center justify-center transition-all duration-200 z-50 active:scale-90 cursor-pointer ${
           isOpen
             ? 'bg-[var(--surface-dark)] hover:bg-gray-800'
-            : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] hover:scale-105'
+            : 'bg-gradient-to-br from-[var(--accent)] to-cyan-500 hover:opacity-90 hover:scale-105'
         }`}
       >
         {isOpen ? (

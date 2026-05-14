@@ -76,10 +76,11 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pt-[92px] md:pt-[112px] px-5 sm:px-10 pb-24 space-y-6">
-      <header className="mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">데이터 백업 & 복원</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1.5">모든 건강 기록을 JSON 파일로 백업하거나 복원합니다.</p>
+    <div className="max-w-5xl mx-auto pt-[84px] px-5 sm:px-10 pb-28 md:pb-10 space-y-6 animate-fade-up">
+      <header>
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">설정</p>
+        <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">데이터 백업 & 복원</h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">모든 건강 기록을 JSON 파일로 백업하거나 복원합니다.</p>
       </header>
 
       {/* Status card */}

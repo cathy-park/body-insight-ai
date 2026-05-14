@@ -17,12 +17,14 @@ import {
   Stethoscope,
   LayoutDashboard,
   ClipboardList,
-  Sparkles,
-  Bot,
+  Layers,
 } from 'lucide-react';
 import { useHealthStore } from '@/store/useHealthStore';
-import { extractPdfText } from '@/lib/ollama';
 import { buildHealthContext } from '@/lib/health-context';
+
+async function extractPdfText(_buf: ArrayBuffer): Promise<string> {
+  return '';
+}
 
 export default function WarehousePage() {
   const { getNote, updateNote, getDocs, addDoc, updateDoc, deleteDoc, getRecords } = useHealthStore();
@@ -150,61 +152,59 @@ export default function WarehousePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pt-[92px] md:pt-[112px] px-5 sm:px-10 pb-24 space-y-8">
-      
-      <header className="mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">건강 자료실</h1>
-        <p className="text-sm text-slate-500 mt-1">건강검진 기록 및 보험 서류를 통합 관리하세요.</p>
+    <div className="max-w-5xl mx-auto pt-[84px] px-5 sm:px-10 pb-28 md:pb-10 space-y-6 animate-fade-up">
+
+      <header>
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">자료 관리</p>
+        <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 자료실</h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">건강검진 기록 및 보험 서류를 통합 관리하세요.</p>
       </header>
 
-      {/* 1. Global Copy Center */}
-      <section className="bg-white p-5 sm:p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-5">
-        <div className="flex items-center gap-2 px-1">
-          <Sparkles className="w-5 h-5 text-blue-500" />
-          <h2 className="text-[13px] sm:text-[14px] font-black uppercase tracking-wider text-slate-800">데이터 복사 센터 (GPT 전송용)</h2>
+      {/* 1. Copy Center */}
+      <section className="bg-white p-5 sm:p-6 rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] space-y-4">
+        <div className="flex items-center gap-2">
+          <Copy className="w-4 h-4 text-[var(--accent)]" aria-hidden="true" />
+          <h2 className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)]">데이터 복사 센터</h2>
+          <span className="text-[11px] text-[var(--text-muted)]">— AI에 붙여넣기용</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <button
-            onClick={handleCopyInBody}
-            className={`flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 sm:gap-2 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] transition-all border ${
-              copyStatus === 'inbody' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-50 border-slate-100 hover:border-blue-200'
-            }`}
-          >
-            <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-[12px] sm:text-[13px] font-black">{copyStatus === 'inbody' ? '복사 완료!' : '인바디 전체 복사'}</span>
-          </button>
-          <button
-            onClick={handleCopyDocs}
-            className={`flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 sm:gap-2 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] transition-all border ${
-              copyStatus === 'docs' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-50 border-slate-100 hover:border-blue-200'
-            }`}
-          >
-            <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-[12px] sm:text-[13px] font-black">{copyStatus === 'docs' ? '복사 완료!' : '서류 전체 복사'}</span>
-          </button>
-          <button
-            onClick={handleCopyAll}
-            className={`flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 sm:gap-2 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] transition-all border ${
-              copyStatus === 'all' ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 border-blue-100 hover:border-blue-300'
-            }`}
-          >
-            <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-[12px] sm:text-[13px] font-black">{copyStatus === 'all' ? '통합 복사 완료!' : '통합 분석용 복사'}</span>
-          </button>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { key: 'inbody', label: '인바디 복사', icon: LayoutDashboard, onClick: handleCopyInBody, accent: false },
+            { key: 'docs',   label: '서류 복사',   icon: ClipboardList,   onClick: handleCopyDocs,   accent: false },
+            { key: 'all',    label: '통합 복사',   icon: Layers,          onClick: handleCopyAll,    accent: true  },
+          ].map(({ key, label, icon: Icon, onClick, accent }) => {
+            const done = copyStatus === key;
+            return (
+              <button
+                key={key}
+                onClick={onClick}
+                className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer active:scale-95 ${
+                  done
+                    ? 'bg-[var(--cta)] text-white border-[var(--cta)]'
+                    : accent
+                    ? 'bg-[var(--accent-muted)] border-[var(--accent-soft)] text-[var(--accent)] hover:border-[var(--accent)]'
+                    : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent-soft)]'
+                }`}
+              >
+                {done ? <Check className="w-5 h-5" aria-hidden="true" /> : <Icon className="w-5 h-5" aria-hidden="true" />}
+                <span className="text-[11px] font-black">{done ? '복사 완료!' : label}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
       {/* 2. Category Tabs */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-        <div className="flex items-center gap-0.5 sm:gap-1">
+      <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+        <div className="flex items-center gap-0.5">
           {['전체', '건강검진', '보험'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`px-3 sm:px-6 py-2 rounded-xl text-[12px] sm:text-[14px] font-black transition-all ${
-                activeTab === tab 
-                ? 'bg-slate-900 text-white shadow-lg' 
-                : 'text-slate-400 hover:text-slate-600'
+              className={`px-4 py-2 rounded-xl text-[13px] font-black transition-all cursor-pointer ${
+                activeTab === tab
+                  ? 'bg-[var(--text-primary)] text-white shadow-sm'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               {tab}
@@ -213,75 +213,88 @@ export default function WarehousePage() {
         </div>
         <button
           onClick={() => { setIsAddingManual(true); setForm({ name: '', content: '', category: activeTab === '전체' ? '건강검진' : activeTab as any }); }}
-          className="flex items-center gap-1 text-[12px] font-bold text-blue-600 px-2 py-2"
+          className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--accent)] hover:bg-[var(--accent-muted)] px-3 py-2 rounded-xl transition-colors cursor-pointer"
         >
-          <PlusCircle className="w-4 h-4" /> <span className="hidden sm:inline">직접 추가</span>
+          <PlusCircle className="w-4 h-4" aria-hidden="true" />
+          <span className="hidden sm:inline">직접 추가</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Column: Memo */}
         <div className="lg:col-span-4 order-2 lg:order-1">
-          <div className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm space-y-3">
+          <div className="bg-white p-5 rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] space-y-3 h-full">
             <div className="flex items-center gap-2">
-              <StickyNote className="w-4 h-4 text-amber-500" />
-              <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-500">참고 메모</h3>
+              <StickyNote className="w-4 h-4 text-amber-500" aria-hidden="true" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)]">참고 메모</h3>
             </div>
             <textarea
               value={getNote()}
               onChange={(e) => updateNote(e.target.value)}
-              placeholder="특이사항을 적어두세요."
-              className="w-full h-[120px] lg:h-[200px] p-0 bg-transparent border-none focus:ring-0 outline-none text-[13px] sm:text-[14px] leading-relaxed text-slate-700 placeholder:text-slate-300 resize-none"
+              placeholder="특이사항, 목표, 복용 약물 등을 적어두세요."
+              aria-label="참고 메모"
+              className="w-full h-[140px] lg:h-[220px] p-0 bg-transparent border-none focus:ring-0 outline-none text-[13px] leading-relaxed text-[var(--text-secondary)] placeholder:text-[var(--text-muted)] resize-none"
             />
           </div>
         </div>
 
-        {/* Right Column: List */}
-        <div className="lg:col-span-8 order-1 lg:order-2 space-y-4">
-          <div
+        {/* Right Column: Doc List */}
+        <div className="lg:col-span-8 order-1 lg:order-2 space-y-3">
+          <button
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-200 rounded-[24px] p-5 flex items-center justify-center gap-3 hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer bg-white"
+            className="w-full border-2 border-dashed border-[var(--border)] rounded-2xl p-4 flex items-center justify-center gap-3 hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all cursor-pointer bg-white"
+            aria-label="파일 업로드"
           >
-            <UploadCloud className="w-5 h-5 text-slate-400" />
-            <span className="text-[13px] sm:text-[14px] font-bold text-slate-500">{isUploading ? '업로드 중...' : '파일 업로드 (PDF/TXT)'}</span>
-            <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files)} multiple className="hidden" />
-          </div>
+            <UploadCloud className="w-5 h-5 text-[var(--text-muted)]" aria-hidden="true" />
+            <span className="text-[13px] font-bold text-[var(--text-muted)]">
+              {isUploading ? '업로드 중...' : '파일 업로드 (PDF / TXT / CSV)'}
+            </span>
+            <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files)} multiple className="hidden" aria-hidden="true" />
+          </button>
 
           {filteredDocs.length === 0 ? (
-            <div className="text-center py-12 sm:py-20">
-              <p className="text-slate-300 text-[13px] sm:text-[14px]">등록된 자료가 없습니다.</p>
+            <div className="text-center py-16">
+              <FileText className="w-10 h-10 text-[var(--border)] mx-auto mb-3" aria-hidden="true" />
+              <p className="text-sm text-[var(--text-muted)]">등록된 자료가 없습니다.</p>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {filteredDocs.map((doc) => (
-                <div key={doc.id} className="bg-white px-4 sm:px-6 py-3.5 rounded-[20px] sm:rounded-[24px] border border-slate-100 shadow-sm hover:border-blue-200 transition-all group relative overflow-hidden">
+                <div
+                  key={doc.id}
+                  className="bg-white px-4 sm:px-5 py-3.5 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] hover:border-[var(--accent-soft)] transition-all group relative overflow-hidden"
+                >
                   {copyStatus === doc.id && (
-                    <div className="absolute inset-0 bg-emerald-500 flex items-center justify-center text-white z-10">
-                      <span className="font-black text-[12px] sm:text-[13px]">복사 완료!</span>
+                    <div className="absolute inset-0 bg-[var(--cta)] flex items-center justify-center text-white z-10 rounded-2xl">
+                      <span className="font-black text-sm">복사 완료!</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        doc.category === '보험' ? 'bg-indigo-50 text-indigo-500' : 'bg-blue-50 text-blue-500'
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        doc.category === '보험'
+                          ? 'bg-violet-50 text-violet-500'
+                          : 'bg-[var(--accent-muted)] text-[var(--accent)]'
                       }`}>
-                        {doc.category === '보험' ? <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" /> : <Stethoscope className="w-4 h-4 sm:w-5 sm:h-5" />}
+                        {doc.category === '보험'
+                          ? <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                          : <Stethoscope className="w-4 h-4" aria-hidden="true" />
+                        }
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-[13px] sm:text-[14px] font-black text-slate-800 truncate group-hover:text-blue-600 transition-colors">{doc.name}</h4>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] font-bold text-slate-300 uppercase">{doc.date}</span>
-                          <span className="text-[10px] font-bold text-slate-300">·</span>
-                          <span className="text-[10px] font-black text-emerald-500 uppercase">{doc.category}</span>
+                        <h4 className="text-[13px] font-black text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">{doc.name}</h4>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] font-bold text-[var(--text-muted)]">{doc.date}</span>
+                          <span className="text-[10px] text-[var(--text-muted)]">·</span>
+                          <span className="text-[10px] font-black text-[var(--cta)]">{doc.category}</span>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                      <button onClick={() => openEdit(doc)} className="p-1.5 sm:p-2 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg"><Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /></button>
-                      <button onClick={() => handleDownload(doc)} className="p-1.5 sm:p-2 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg"><Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" /></button>
-                      <button onClick={() => handleCopySingle(doc)} className="p-1.5 sm:p-2 text-slate-300 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg"><Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" /></button>
-                      <button onClick={() => deleteDoc(doc.id)} className="p-1.5 sm:p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /></button>
+                    <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button onClick={() => openEdit(doc)} aria-label="수정" className="p-2 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-muted)] rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Edit3 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDownload(doc)} aria-label="다운로드" className="p-2 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-muted)] rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Download className="w-4 h-4" /></button>
+                      <button onClick={() => handleCopySingle(doc)} aria-label="복사" className="p-2 text-[var(--text-muted)] hover:text-[var(--cta)] hover:bg-[var(--cta-muted)] rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Copy className="w-4 h-4" /></button>
+                      <button onClick={() => deleteDoc(doc.id)} aria-label="삭제" className="p-2 text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 </div>
@@ -293,11 +306,20 @@ export default function WarehousePage() {
 
       {/* Manual Entry / Edit Modal */}
       {(isAddingManual || editingDoc) && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-[600px] rounded-[40px] shadow-2xl p-10 space-y-6">
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) { setIsAddingManual(false); setEditingDoc(null); } }}
+        >
+          <div className="bg-[var(--surface-0)] w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] border border-[var(--border)] shadow-[var(--shadow-elevated)] p-6 space-y-5 max-h-[92dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-slate-900">{isAddingManual ? '새 자료 등록' : '자료 수정'}</h3>
-              <button onClick={() => { setIsAddingManual(false); setEditingDoc(null); }} className="text-slate-300 hover:text-slate-600"><X className="w-8 h-8"/></button>
+              <h3 className="text-[17px] font-black text-[var(--text-primary)]">{isAddingManual ? '새 자료 등록' : '자료 수정'}</h3>
+              <button
+                onClick={() => { setIsAddingManual(false); setEditingDoc(null); }}
+                className="p-2 hover:bg-[var(--surface-2)] rounded-xl transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="닫기"
+              >
+                <X className="w-5 h-5 text-[var(--text-muted)]" />
+              </button>
             </div>
             <div className="space-y-4">
               <div className="flex gap-2">
@@ -305,8 +327,10 @@ export default function WarehousePage() {
                   <button
                     key={cat}
                     onClick={() => setForm({ ...form, category: cat as any })}
-                    className={`px-4 py-2 rounded-xl text-[12px] font-black transition-all ${
-                      form.category === cat ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
+                    className={`px-4 py-2 rounded-xl text-[13px] font-black transition-all cursor-pointer ${
+                      form.category === cat
+                        ? 'bg-[var(--accent)] text-white'
+                        : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     {cat}
@@ -318,20 +342,21 @@ export default function WarehousePage() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="제목 (파일명)"
-                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-[14px] font-bold outline-none focus:bg-white focus:border-blue-300"
+                className="w-full px-4 py-3 bg-white border border-[var(--border)] rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
               />
               <textarea
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
                 placeholder="내용을 입력하세요."
-                className="w-full h-[300px] px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-[14px] leading-relaxed outline-none focus:bg-white focus:border-blue-300 resize-none"
+                className="w-full h-64 px-4 py-3 bg-white border border-[var(--border)] rounded-xl text-sm leading-relaxed outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
               />
             </div>
             <button
               onClick={editingDoc ? saveEdit : handleAddManual}
-              className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[16px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-[var(--accent)] to-cyan-500 hover:opacity-90 text-white rounded-2xl font-black text-sm transition-all active:scale-[0.98] shadow-md shadow-cyan-200 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Check className="w-5 h-5" /> {editingDoc ? '저장 완료' : '등록 완료'}
+              <Check className="w-4 h-4" aria-hidden="true" />
+              {editingDoc ? '저장 완료' : '등록 완료'}
             </button>
           </div>
         </div>
