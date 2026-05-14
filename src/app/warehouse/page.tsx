@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   Layers,
+  MoreVertical,
 } from 'lucide-react';
 import { useHealthStore } from '@/store/useHealthStore';
 import { buildHealthContext } from '@/lib/health-context';
@@ -37,6 +38,7 @@ export default function WarehousePage() {
   const [editingDoc, setEditingDoc] = useState<any | null>(null);
   const [isAddingManual, setIsAddingManual] = useState(false);
   const [form, setForm] = useState({ name: '', content: '', category: '건강검진' as '건강검진' | '보험' });
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const TEXT_EXTENSIONS = ['.txt', '.md', '.csv', '.json', '.log', '.tsv'];
@@ -290,11 +292,51 @@ export default function WarehousePage() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      <button onClick={() => openEdit(doc)} aria-label="수정" className="p-2 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-muted)] rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Edit3 className="w-4 h-4" /></button>
-                      <button onClick={() => handleDownload(doc)} aria-label="다운로드" className="p-2 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-muted)] rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Download className="w-4 h-4" /></button>
-                      <button onClick={() => handleCopySingle(doc)} aria-label="복사" className="p-2 text-[var(--text-muted)] hover:text-[var(--cta)] hover:bg-[var(--cta-muted)] rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Copy className="w-4 h-4" /></button>
-                      <button onClick={() => deleteDoc(doc.id)} aria-label="삭제" className="p-2 text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
+                    <div className="relative shrink-0 flex items-center">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === doc.id ? null : doc.id)}
+                        className="p-2 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--surface-2)] rounded-xl transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+                        aria-label="더보기 메뉴"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                      
+                      {openMenuId === doc.id && (
+                        <>
+                          {/* Click backdrop to close menu */}
+                          <div 
+                            className="fixed inset-0 z-20 cursor-default" 
+                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }} 
+                          />
+                          <div className="absolute right-0 top-full mt-1 bg-white border border-[var(--border)] shadow-[var(--shadow-elevated)] rounded-2xl p-1.5 min-w-[130px] z-30 flex flex-col">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openEdit(doc); setOpenMenuId(null); }}
+                              className="flex items-center gap-2 w-full px-3 py-2.5 text-left text-[12px] font-bold text-[var(--text-secondary)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent)] rounded-xl transition-all cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5 text-[var(--text-muted)]" />수정
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDownload(doc); setOpenMenuId(null); }}
+                              className="flex items-center gap-2 w-full px-3 py-2.5 text-left text-[12px] font-bold text-[var(--text-secondary)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent)] rounded-xl transition-all cursor-pointer"
+                            >
+                              <Download className="w-3.5 h-3.5 text-[var(--text-muted)]" />다운로드
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleCopySingle(doc); setOpenMenuId(null); }}
+                              className="flex items-center gap-2 w-full px-3 py-2.5 text-left text-[12px] font-bold text-[var(--text-secondary)] hover:bg-[var(--cta-muted)] hover:text-[var(--cta)] rounded-xl transition-all cursor-pointer"
+                            >
+                              <Copy className="w-3.5 h-3.5 text-[var(--text-muted)]" />복사
+                            </button>
+                            <hr className="my-1 border-[var(--border-subtle)]" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); if(confirm('삭제하시겠습니까?')) deleteDoc(doc.id); setOpenMenuId(null); }}
+                              className="flex items-center gap-2 w-full px-3 py-2.5 text-left text-[12px] font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />삭제
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
