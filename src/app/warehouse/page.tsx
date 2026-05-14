@@ -264,7 +264,7 @@ export default function WarehousePage() {
               {filteredDocs.map((doc) => (
                 <div
                   key={doc.id}
-                  className="bg-white px-4 sm:px-5 py-3.5 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] hover:border-[var(--accent-soft)] transition-all group relative overflow-hidden"
+                  className="bg-white px-4 sm:px-5 py-3.5 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] hover:border-[var(--accent-soft)] transition-all group relative"
                 >
                   {copyStatus === doc.id && (
                     <div className="absolute inset-0 bg-[var(--cta)] flex items-center justify-center text-white z-10 rounded-2xl">
