@@ -152,16 +152,25 @@ export default function DashboardPage() {
     const muscle = latest.skeletal_muscle;
     const fat    = latest.body_fat_mass;
     const other  = Math.max(0, parseFloat((latest.weight - muscle - fat).toFixed(1)));
+    
+    // Calculate dynamic BMI from latest record or settings
+    let bmi = latest.bmi;
+    if (!bmi && latest.weight && settings.height) {
+      const h = settings.height / 100;
+      bmi = parseFloat((latest.weight / (h * h)).toFixed(1));
+    }
+
     return {
       date: latest.date,
       weight: latest.weight,
+      bmi,
       items: [
         { name: '근육량', value: muscle, color: '#059669', pct: Math.round((muscle / latest.weight) * 100) },
         { name: '체지방', value: fat,    color: '#dc2626', pct: Math.round((fat    / latest.weight) * 100) },
         { name: '기타',   value: other,  color: '#94a3b8', pct: Math.round((other  / latest.weight) * 100) },
       ],
     };
-  }, [records]);
+  }, [records, settings]);
 
   // ── Chart data with trend ─────────────────────────────────────────
   const chartData = useMemo(() => {
@@ -481,9 +490,32 @@ export default function DashboardPage() {
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
                 <Dumbbell className="w-3.5 h-3.5" />체성분 분석
               </p>
-              <h2 className="text-base font-black text-[var(--text-primary)] mb-1">현재 체성분 비율</h2>
-              <p className="text-[11px] text-[var(--text-muted)] mb-3">기준일: {compositionData.date}</p>
-              <div className="flex items-center gap-6">
+              
+              {/* Header with responsive layout for Title and BMI */}
+              <div className="flex items-center justify-between mb-5 gap-2">
+                <div>
+                  <h2 className="text-base font-black text-[var(--text-primary)] leading-tight">현재 체성분 비율</h2>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">기준일: {compositionData.date}</p>
+                </div>
+                {compositionData.bmi && (
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] font-bold text-[var(--text-muted)]">나의 체질량 지수</p>
+                    <div className="flex items-center gap-1.5 justify-end mt-0.5">
+                      <span className="text-[17px] font-black text-[var(--text-primary)] tracking-tight">BMI {compositionData.bmi}</span>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border ${
+                        compositionData.bmi < 18.5 ? 'text-cyan-600 bg-cyan-50 border-cyan-100' :
+                        compositionData.bmi < 23 ? 'text-emerald-600 bg-emerald-50 border-emerald-100' :
+                        compositionData.bmi < 25 ? 'text-amber-600 bg-amber-50 border-amber-100' :
+                        'text-rose-600 bg-rose-50 border-rose-100'
+                      }`}>
+                        {compositionData.bmi < 18.5 ? '저체중' : compositionData.bmi < 23 ? '정상' : compositionData.bmi < 25 ? '과체중' : '비만'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
                 {/* Donut */}
                 <div className="relative shrink-0" style={{ width: 140, height: 140 }}>
                   <ResponsiveContainer width="100%" height="100%">
@@ -506,24 +538,27 @@ export default function DashboardPage() {
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
-                  {/* Center label */}
+                  {/* Center label showing Weight and BMI status indicator */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <p className="text-[15px] font-black text-[var(--text-primary)] leading-none">{compositionData.weight}</p>
-                    <p className="text-[9px] font-bold text-[var(--text-muted)]">kg</p>
+                    <p className="text-[17px] font-black text-[var(--text-primary)] leading-none">{compositionData.weight}<span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">kg</span></p>
                   </div>
                 </div>
 
-                {/* Legend */}
-                <div className="flex-1 space-y-2.5">
+                {/* Responsive Legend */}
+                <div className="flex-1 grid grid-cols-3 sm:flex sm:flex-col gap-2 sm:gap-2.5 w-full">
                   {compositionData.items.map(item => (
-                    <div key={item.name} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="text-[13px] font-bold text-[var(--text-secondary)]">{item.name}</span>
+                    <div key={item.name} className="flex flex-col items-center sm:flex-row sm:justify-between p-2 sm:p-0 bg-[var(--surface-2)] sm:bg-transparent rounded-xl text-center sm:text-left border border-[var(--border-subtle)] sm:border-0">
+                      <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                        <div className="w-2 h-2 rounded-full shrink-0 mb-0.5 sm:mb-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-[12px] sm:text-[13px] font-black text-[var(--text-secondary)] whitespace-nowrap truncate">{item.name}</span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[13px] font-black text-[var(--text-primary)]">{item.value.toFixed(1)}<span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">kg</span></span>
-                        <span className="text-[11px] font-bold text-[var(--text-muted)] ml-1.5">({item.pct}%)</span>
+                      <div className="flex flex-col items-center sm:items-end sm:mt-0 mt-0.5">
+                        <span className="text-[12px] sm:text-[13px] font-black text-[var(--text-primary)] whitespace-nowrap">
+                          {item.value.toFixed(1)}kg
+                        </span>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-muted)] whitespace-nowrap sm:ml-1.5">
+                          ({item.pct}%)
+                        </span>
                       </div>
                     </div>
                   ))}
