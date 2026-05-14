@@ -61,11 +61,15 @@ export default function InputPage() {
              latestSleep = (end - start) / (1000 * 60 * 60);
           }
 
+          // 생리 주기 데이터가 존재하면 활성화
+          const latestPeriod = data.payload?.menstruation && data.payload.menstruation.length > 0;
+
           setFormData((prev) => ({
             ...prev,
             ...(latestWeight ? { weight: parseFloat(latestWeight.toFixed(1)) } : {}),
             ...(latestBodyFat ? { body_fat: parseFloat(latestBodyFat.toFixed(1)) } : {}),
             ...(latestSleep ? { sleep_hours: parseFloat(latestSleep.toFixed(1)) } : {}),
+            ...(latestPeriod ? { period_flag: true } : {}),
           }));
           
           alert('건강 데이터가 성공적으로 불러와졌습니다!');
