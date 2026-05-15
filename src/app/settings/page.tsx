@@ -290,21 +290,21 @@ export default function SettingsPage() {
               <p className="text-[12px] font-bold text-[var(--text-primary)] mb-1">📥 데이터를 가져올 기기 (PC 브라우저)</p>
               <p className="text-[11px] text-[var(--text-muted)]">코드를 발급한 기존 기기의 8자리 보안코드를 입력해 데이터를 그대로 연동해옵니다.</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
               <input
                 type="text"
                 placeholder="8자리 코드 입력"
                 maxLength={12}
                 value={inputSyncCode}
                 onChange={(e) => setInputSyncCode(e.target.value)}
-                className="flex-1 px-3 py-2.5 bg-white border border-[var(--border)] rounded-xl outline-none font-bold text-sm text-[var(--text-primary)] text-center focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent shadow-inner"
+                className="w-full px-3 py-2.5 bg-white border border-[var(--border)] rounded-xl outline-none font-bold text-sm text-[var(--text-primary)] text-center focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent shadow-inner"
               />
               <button
                 onClick={handleResolveSyncCode}
                 disabled={isResolvingSync}
-                className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-bold text-[13px] transition-all active:scale-[0.98] cursor-pointer shadow-md shadow-cyan-100 shrink-0"
+                className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-bold text-[13px] transition-all active:scale-[0.98] cursor-pointer shadow-md shadow-cyan-100 flex items-center justify-center"
               >
-                {isResolvingSync ? '연동...' : '연동하기'}
+                {isResolvingSync ? '기기 연동 중...' : '기기 데이터 연동하기'}
               </button>
             </div>
           </div>

@@ -335,7 +335,8 @@ export function Navigation() {
       {/* Mobile Bottom Tab Bar — solid fixed bar */}
       <nav
         aria-label="모바일 하단 메뉴"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-[60px] bg-white border-t border-[var(--border)] shadow-[0_-1px_4px_0_rgb(0_0_0/0.04)]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-[60px] bg-white border-t border-[var(--border)] shadow-[0_-1px_4px_0_rgb(0_0_0/0.04)] will-change-transform"
+        style={{ transform: 'translate3d(0,0,0)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
       >
           <div className="flex items-center justify-around h-full px-2">
             {navItems.map((item) => {
