@@ -298,7 +298,7 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       {/* ── Header ── */}
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mt-5 mb-10">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-10">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">나의 건강 대시보드</p>
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 기록 분석</h1>

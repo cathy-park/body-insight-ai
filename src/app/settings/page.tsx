@@ -116,12 +116,22 @@ export default function SettingsPage() {
   const handleGenerateSyncCode = async () => {
     try {
       setIsGeneratingSync(true);
+
+      // 1. 현재 기기에 쌓여있는 로컬 건강 기록을 Firestore 클라우드로 100% 강제 백업
+      const localRecords = getRecords();
+      if (localRecords.length > 0) {
+        const { bulkUpsertBodyRecords } = await import('@/services/healthRecordService');
+        const { getFirestoreUserId } = await import('@/services/userService');
+        await bulkUpsertBodyRecords(getFirestoreUserId(currentUserId), localRecords);
+      }
+
+      // 2. 8자리 임시 핀코드 발급
       const deviceId = getAnonymousDeviceId();
       const code = await generateSyncCode(deviceId);
       setSyncCode(code);
-      showToast('동기화 코드가 성공적으로 발급되었습니다! 📱', 'success');
+      showToast('데이터 클라우드 백업 및 동기화 코드 발급 완료! 📱', 'success');
     } catch (err: any) {
-      showToast(err.message || '코드 생성 중 오류가 발생했습니다.', 'error');
+      showToast(err.message || '코드 생성 또는 백업 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsGeneratingSync(false);
     }
@@ -250,11 +260,11 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[var(--border-subtle)]">
-          {/* 모바일용: 코드 발급 */}
+          {/* 데이터를 내보낼 기기 (데이터 있음) */}
           <div className="bg-[var(--surface-2)] p-4 rounded-2xl border border-[var(--border)] flex flex-col justify-between gap-3">
             <div>
-              <p className="text-[12px] font-bold text-[var(--text-primary)] mb-1">📱 모바일에서 오신 경우</p>
-              <p className="text-[11px] text-[var(--text-muted)]">PC에 입력할 8자리 연동 코드를 생성합니다.</p>
+              <p className="text-[12px] font-bold text-[var(--text-primary)] mb-1">📤 데이터를 내보낼 기기 (기존 스마트폰)</p>
+              <p className="text-[11px] text-[var(--text-muted)]">이 기기의 모든 데이터를 클라우드에 백업하고, 8자리 고유 코드를 생성합니다.</p>
             </div>
             {syncCode ? (
               <div className="bg-white border-2 border-[var(--accent)] px-4 py-3 rounded-xl text-center animate-pulse shadow-sm">
@@ -269,16 +279,16 @@ export default function SettingsPage() {
                 disabled={isGeneratingSync}
                 className="w-full py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-bold text-[13px] transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shadow-[var(--shadow-card)] shadow-[var(--accent-soft)]"
               >
-                {isGeneratingSync ? '코드 발급 중...' : '8자리 연동코드 발급'}
+                {isGeneratingSync ? '백업 및 코드 발급 중...' : '전체 백업 및 코드 발급'}
               </button>
             )}
           </div>
 
-          {/* PC용: 코드 입력 */}
+          {/* 데이터를 가져올 기기 (데이터 받을 곳) */}
           <div className="bg-[var(--surface-2)] p-4 rounded-2xl border border-[var(--border)] flex flex-col justify-between gap-3">
             <div>
-              <p className="text-[12px] font-bold text-[var(--text-primary)] mb-1">💻 PC에서 오신 경우</p>
-              <p className="text-[11px] text-[var(--text-muted)]">모바일에 뜬 8자리 코드를 그대로 입력하세요.</p>
+              <p className="text-[12px] font-bold text-[var(--text-primary)] mb-1">📥 데이터를 가져올 기기 (PC 브라우저)</p>
+              <p className="text-[11px] text-[var(--text-muted)]">코드를 발급한 기존 기기의 8자리 보안코드를 입력해 데이터를 그대로 연동해옵니다.</p>
             </div>
             <div className="flex gap-2">
               <input
