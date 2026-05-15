@@ -123,7 +123,8 @@ export default function CalendarPage() {
   const inputClass = "w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl outline-none font-bold text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all cursor-text";
 
   return (
-    <div className="max-w-5xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 animate-fade-up">
+    <>
+      <div className="max-w-5xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 animate-fade-up">
 
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
@@ -246,13 +247,15 @@ export default function CalendarPage() {
         </div>
       </section>
 
+      </div>
+      
       {/* Record Modal */}
       {isModalOpen && selectedDate && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label={`${format(selectedDate, 'MM월 dd일', { locale: ko })} 건강 기록`}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-end sm:items-center justify-center px-0 pt-0 pb-[68px] sm:p-4"
           onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
         >
           <div className="bg-[var(--surface-0)] rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg shadow-[var(--shadow-elevated)] flex flex-col max-h-[94dvh] sm:max-h-[90vh] border border-[var(--border)] overflow-hidden">
@@ -367,6 +370,6 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

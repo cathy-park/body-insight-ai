@@ -10,6 +10,7 @@ import {
   Timestamp,
   serverTimestamp,
   writeBatch,
+  onSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { HealthRecord } from '@/types';
@@ -102,6 +103,32 @@ export async function getBodyRecords(firestoreUserId: string): Promise<HealthRec
     return [];
   }
 }
+
+/** Firestore 실시간 컬렉션 구독 (양방향 실시간 동기화) */
+export function subscribeToBodyRecords(
+  firestoreUserId: string,
+  callback: (records: HealthRecord[]) => void,
+): () => void {
+  if (!db) return () => {};
+  try {
+    const col = collection(db, 'users', firestoreUserId, 'bodyRecords');
+    const q   = query(col, orderBy('date', 'asc'));
+    
+    // onSnapshot으로 리스너 등록
+    const unsub = onSnapshot(q, (snap) => {
+      const records = snap.docs.map(d => fromFirestoreDoc(d.id, d.data() as Record<string, any>));
+      callback(records);
+    }, (err) => {
+      console.error('[Firestore] subscribeToBodyRecords 실시간 오류:', err);
+    });
+    
+    return unsub;
+  } catch (err) {
+    console.error('[Firestore] subscribeToBodyRecords 등록 실패:', err);
+    return () => {};
+  }
+}
+
 
 /** 날짜 범위로 기록 조회 */
 export async function getBodyRecordsByDateRange(

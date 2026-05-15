@@ -171,12 +171,8 @@ export const useHealthStore = create<HealthState>()(
       importRecordsFromFirestore: (firestoreRecords) => {
         set((state) => {
           const userId = state.currentUserId;
-          const currentRecords = state.userRecords[userId] || [];
-          const localDates = new Set(currentRecords.map(r => r.date));
-          // 로컬에 없는 날짜 기록만 병합
-          const newRecords = firestoreRecords.filter(r => r.date && !localDates.has(r.date));
-          if (newRecords.length === 0) return state;
-          const updated = [...currentRecords, ...newRecords]
+          // Firestore의 기록들을 로컬에 1:1로 미러링하여 삽입/수정/삭제를 완벽히 반영합니다.
+          const updated = [...firestoreRecords]
             .sort((a, b) => a.date.localeCompare(b.date));
           return { userRecords: { ...state.userRecords, [userId]: updated } };
         });
