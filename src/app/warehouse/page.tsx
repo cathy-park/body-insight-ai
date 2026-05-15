@@ -154,7 +154,8 @@ export default function WarehousePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
+    <>
+      <div className="max-w-5xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       <header className="mb-10">
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">자료 관리</p>
@@ -346,10 +347,12 @@ export default function WarehousePage() {
         </div>
       </div>
 
+      </div>
+      
       {/* Manual Entry / Edit Modal */}
       {(isAddingManual || editingDoc) && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] px-0 pt-0 pb-[68px] sm:p-4"
           onClick={(e) => { if (e.target === e.currentTarget) { setIsAddingManual(false); setEditingDoc(null); } }}
         >
           <div className="bg-[var(--surface-0)] w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] border border-[var(--border)] shadow-[var(--shadow-elevated)] p-6 space-y-5 max-h-[92dvh] overflow-y-auto">
@@ -403,6 +406,6 @@ export default function WarehousePage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
