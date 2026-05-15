@@ -58,13 +58,14 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
-function calcTrend(ys: number[]): { slope: number; intercept: number } | null {
-  const n = ys.length;
+function calcTrend(points: { x: number; y: number }[]): { slope: number; intercept: number } | null {
+  const n = points.length;
   if (n < 3) return null;
   let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
   for (let i = 0; i < n; i++) {
-    sumX += i; sumY += ys[i];
-    sumXY += i * ys[i]; sumX2 += i * i;
+    const { x, y } = points[i];
+    sumX += x; sumY += y;
+    sumXY += x * y; sumX2 += x * x;
   }
   const denom = n * sumX2 - sumX * sumX;
   if (denom === 0) return null;
@@ -191,25 +192,41 @@ export default function DashboardPage() {
 
     if (!selectedMetrics.includes('weight') || base.length < 3) return base;
 
-    const weightYs = base.map(d => d.weight).filter((v): v is number => v !== null);
-    const reg = calcTrend(weightYs);
+    const firstDate = new Date(base[0].date).getTime();
+    const getDaysFromStart = (dateStr: string) => {
+      return Math.round((new Date(dateStr).getTime() - firstDate) / (24 * 60 * 60 * 1000));
+    };
+
+    const trendData = base
+      .filter(d => d.weight !== null)
+      .map(d => ({
+        x: getDaysFromStart(d.date),
+        y: d.weight as number
+      }));
+
+    const reg = calcTrend(trendData);
     if (!reg) return base;
 
-    const baseLen = base.length;
-    base.forEach((d, i) => {
-      d.trendWeight = parseFloat(Math.max(0, reg.slope * i + reg.intercept).toFixed(1));
+    // 과거 데이터에 대한 추세선 보정 적용
+    base.forEach((d) => {
+      const days = getDaysFromStart(d.date);
+      d.trendWeight = parseFloat(Math.max(0, reg.slope * days + reg.intercept).toFixed(1));
     });
 
-    // 4 weeks future prediction
+    // 4주 미래 예측 (정확히 7, 14, 21, 28일 뒤로 예측 연장)
     if (base.length > 0) {
-      const lastDate = base[base.length - 1].date;
+      const lastRecord = base[base.length - 1];
+      const lastDateStr = lastRecord.date;
+      const lastDays = getDaysFromStart(lastDateStr);
+
       for (let j = 1; j <= 4; j++) {
+        const futureDays = lastDays + (j * 7);
         base.push({
-          date: addDays(lastDate, j * 7),
+          date: addDays(lastDateStr, j * 7),
           weight: null, skeletal_muscle: null, body_fat_mass: null,
           body_fat: null, visceral_fat_level: null, abdominal_fat_ratio: null,
           waist_circumference_belly: null, waist_circumference_beauty: null,
-          trendWeight: parseFloat(Math.max(0, reg.slope * (baseLen + j - 1) + reg.intercept).toFixed(1)),
+          trendWeight: parseFloat(Math.max(0, reg.slope * futureDays + reg.intercept).toFixed(1)),
         });
       }
     }
