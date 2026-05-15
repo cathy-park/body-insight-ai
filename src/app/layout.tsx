@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { AutoSyncHandler } from "@/components/AutoSyncHandler";
+import { FirestoreSync } from "@/components/FirestoreSync";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className="font-sans bg-[var(--surface-0)] min-h-screen antialiased">
         <Navigation />
         <AutoSyncHandler />
+        <FirestoreSync />
         <main id="main-content">{children}</main>
       </body>
     </html>

@@ -4,6 +4,35 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { HealthRecord, NewHealthRecord, UserProfile, ChatMessage, UserSettings, DEFAULT_SETTINGS } from '@/types';
 
+// ── Firestore 비동기 side effect 헬퍼 (fire-and-forget) ──────────
+// dynamic import → 환경변수 없을 때 Firebase가 초기화되지 않아도 안전
+async function fsSyncOne(appUserId: string, record: HealthRecord) {
+  try {
+    const [{ upsertBodyRecord }, { getFirestoreUserId }] = await Promise.all([
+      import('@/services/healthRecordService'),
+      import('@/services/userService'),
+    ]);
+    await upsertBodyRecord(getFirestoreUserId(appUserId), record);
+  } catch (err) {
+    console.error('[Firestore] 저장 실패:', err);
+  }
+}
+
+async function fsSyncBulk(appUserId: string, records: HealthRecord[]) {
+  if (records.length === 0) return;
+  try {
+    const [{ bulkUpsertBodyRecords }, { getFirestoreUserId }] = await Promise.all([
+      import('@/services/healthRecordService'),
+      import('@/services/userService'),
+    ]);
+    await bulkUpsertBodyRecords(getFirestoreUserId(appUserId), records);
+  } catch (err) {
+    console.error('[Firestore] 일괄 저장 실패:', err);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+
 interface HealthState {
   users: UserProfile[];
   currentUserId: string;
@@ -22,6 +51,8 @@ interface HealthState {
   deleteUser: (id: string) => void;
   addRecord: (record: NewHealthRecord) => void;
   addBulkRecords: (records: NewHealthRecord[]) => void;
+  /** Firestore에서 불러온 기록을 병합합니다 (중복 날짜는 건너뜁니다) */
+  importRecordsFromFirestore: (records: HealthRecord[]) => void;
   clearCurrentUserData: () => void;
   updateNote: (note: string) => void;
   getNote: () => string;
@@ -80,35 +111,76 @@ export const useHealthStore = create<HealthState>()(
         };
       }),
 
-      addRecord: (newRecord) => set((state) => {
-        const userId = state.currentUserId;
-        const currentRecords = state.userRecords[userId] || [];
-        const existingIdx = currentRecords.findIndex(r => r.date === newRecord.date);
-        const heightM = ((state.userSettings?.[userId]?.height ?? 165) / 100);
-        const recordWithBmi = { ...newRecord, bmi: newRecord.bmi || parseFloat((newRecord.weight / (heightM * heightM)).toFixed(1)) } as HealthRecord;
-        let updated: HealthRecord[];
-        if (existingIdx >= 0) {
-          updated = [...currentRecords];
-          updated[existingIdx] = { ...recordWithBmi, id: currentRecords[existingIdx].id, created_at: currentRecords[existingIdx].created_at };
-        } else {
-          updated = [...currentRecords, { ...recordWithBmi, id: Math.random().toString(36).substr(2, 9), created_at: new Date().toISOString() }];
-        }
-        return { userRecords: { ...state.userRecords, [userId]: updated.sort((a, b) => a.date.localeCompare(b.date)) } };
-      }),
+      addRecord: (newRecord) => {
+        let savedRecord: HealthRecord | undefined;
 
-      addBulkRecords: (records) => set((state) => {
-        const userId = state.currentUserId;
-        const currentRecords = state.userRecords[userId] || [];
-        const updated = [...currentRecords];
-        records.forEach(newR => {
-          const idx = updated.findIndex(r => r.date === newR.date);
-          const heightM2 = ((state.userSettings?.[userId]?.height ?? 165) / 100);
-          const recordWithBmi = { ...newR, bmi: newR.bmi || parseFloat((newR.weight / (heightM2 * heightM2)).toFixed(1)) } as HealthRecord;
-          if (idx >= 0) updated[idx] = { ...recordWithBmi, id: updated[idx].id, created_at: updated[idx].created_at };
-          else updated.push({ ...recordWithBmi, id: Math.random().toString(36).substr(2, 9), created_at: new Date().toISOString() });
+        set((state) => {
+          const userId = state.currentUserId;
+          const currentRecords = state.userRecords[userId] || [];
+          const existingIdx = currentRecords.findIndex(r => r.date === newRecord.date);
+          const heightM = ((state.userSettings?.[userId]?.height ?? 165) / 100);
+          const recordWithBmi = { ...newRecord, bmi: newRecord.bmi || parseFloat((newRecord.weight / (heightM * heightM)).toFixed(1)) } as HealthRecord;
+          let updated: HealthRecord[];
+          if (existingIdx >= 0) {
+            updated = [...currentRecords];
+            updated[existingIdx] = { ...recordWithBmi, id: currentRecords[existingIdx].id, created_at: currentRecords[existingIdx].created_at };
+            savedRecord = updated[existingIdx];
+          } else {
+            const newId = Math.random().toString(36).substr(2, 9);
+            savedRecord = { ...recordWithBmi, id: newId, created_at: new Date().toISOString() };
+            updated = [...currentRecords, savedRecord];
+          }
+          return { userRecords: { ...state.userRecords, [userId]: updated.sort((a, b) => a.date.localeCompare(b.date)) } };
         });
-        return { userRecords: { ...state.userRecords, [userId]: updated.sort((a, b) => a.date.localeCompare(b.date)) } };
-      }),
+
+        // Firestore write-through (fire-and-forget)
+        if (savedRecord) {
+          fsSyncOne(get().currentUserId, savedRecord);
+        }
+      },
+
+      addBulkRecords: (records) => {
+        const saved: HealthRecord[] = [];
+
+        set((state) => {
+          const userId = state.currentUserId;
+          const currentRecords = state.userRecords[userId] || [];
+          const updated = [...currentRecords];
+          records.forEach(newR => {
+            const idx = updated.findIndex(r => r.date === newR.date);
+            const heightM2 = ((state.userSettings?.[userId]?.height ?? 165) / 100);
+            const recordWithBmi = { ...newR, bmi: newR.bmi || parseFloat((newR.weight / (heightM2 * heightM2)).toFixed(1)) } as HealthRecord;
+            if (idx >= 0) {
+              updated[idx] = { ...recordWithBmi, id: updated[idx].id, created_at: updated[idx].created_at };
+              saved.push(updated[idx]);
+            } else {
+              const r = { ...recordWithBmi, id: Math.random().toString(36).substr(2, 9), created_at: new Date().toISOString() };
+              updated.push(r);
+              saved.push(r);
+            }
+          });
+          return { userRecords: { ...state.userRecords, [userId]: updated.sort((a, b) => a.date.localeCompare(b.date)) } };
+        });
+
+        // Firestore bulk write-through (fire-and-forget)
+        if (saved.length > 0) {
+          fsSyncBulk(get().currentUserId, saved);
+        }
+      },
+
+      importRecordsFromFirestore: (firestoreRecords) => {
+        set((state) => {
+          const userId = state.currentUserId;
+          const currentRecords = state.userRecords[userId] || [];
+          const localDates = new Set(currentRecords.map(r => r.date));
+          // 로컬에 없는 날짜 기록만 병합
+          const newRecords = firestoreRecords.filter(r => r.date && !localDates.has(r.date));
+          if (newRecords.length === 0) return state;
+          const updated = [...currentRecords, ...newRecords]
+            .sort((a, b) => a.date.localeCompare(b.date));
+          return { userRecords: { ...state.userRecords, [userId]: updated } };
+        });
+      },
 
       clearCurrentUserData: () => set((state) => ({
         userRecords: { ...state.userRecords, [state.currentUserId]: [] },
@@ -119,11 +191,11 @@ export const useHealthStore = create<HealthState>()(
       updateNote: (note) => set((state) => ({ userNotes: { ...state.userNotes, [state.currentUserId]: note } })),
       getNote: () => get().userNotes[get().currentUserId] || '',
       getRecords: () => get().userRecords[get().currentUserId] || [],
-      addDoc: (doc) => set((state) => ({ 
-        userDocs: { 
-          ...state.userDocs, 
-          [state.currentUserId]: [{ ...doc, category: doc.category || '건강검진' }, ...(state.userDocs[state.currentUserId] || [])] 
-        } 
+      addDoc: (doc) => set((state) => ({
+        userDocs: {
+          ...state.userDocs,
+          [state.currentUserId]: [{ ...doc, category: doc.category || '건강검진' }, ...(state.userDocs[state.currentUserId] || [])]
+        }
       })),
       updateDoc: (docId, updates) => set((state) => ({
         userDocs: {
