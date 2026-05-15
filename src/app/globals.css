@@ -179,7 +179,7 @@ body {
 
 /* ─── Toast entrance (replaces missing tailwindcss-animate plugin) ── */
 @keyframes toastSlideIn {
-  from { opacity: 0; transform: translate(-50%, 0.75rem); }
+  from { opacity: 0; transform: translate(-50%, -0.75rem); }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
 .animate-toast-in {
