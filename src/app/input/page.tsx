@@ -122,7 +122,7 @@ export default function InputPage() {
 
   return (
     <div className="max-w-7xl mx-auto pt-[112px] px-4 sm:px-6 pb-24">
-      <header className="mb-8">
+      <header className="mb-10">
         <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">상세 데이터 기록</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1.5">정교한 분석을 위해 모든 지표를 입력해 주세요.</p>
       </header>

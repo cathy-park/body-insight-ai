@@ -298,7 +298,7 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       {/* ── Header ── */}
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mt-5">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mt-5 mb-10">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">나의 건강 대시보드</p>
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 기록 분석</h1>
@@ -338,7 +338,7 @@ export default function DashboardPage() {
       </header>
 
       {/* ── Filter bar ── */}
-      <div className="flex bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-x-auto scrollbar-hide w-fit" role="group" aria-label="기간 필터">
+      <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-x-auto scrollbar-hide w-fit" role="group" aria-label="기간 필터">
         {(Object.keys(FILTER_LABELS) as (keyof typeof FILTER_LABELS)[]).map((f) => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
             className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
