@@ -339,7 +339,7 @@ export function Navigation() {
         aria-label="모바일 하단 메뉴"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe pointer-events-none"
       >
-        <div className="mx-4 mb-3 bg-white/90 backdrop-blur-2xl border border-[var(--border)] rounded-2xl shadow-[var(--shadow-elevated)] pointer-events-auto">
+        <div className="mx-4 mb-8 bg-white/90 backdrop-blur-2xl border border-[var(--border)] rounded-2xl shadow-[var(--shadow-elevated)] pointer-events-auto">
           <div className="flex items-center justify-around h-[60px] px-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;

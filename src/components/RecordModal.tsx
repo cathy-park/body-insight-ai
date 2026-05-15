@@ -104,6 +104,12 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
           : undefined;
         const latestPeriod  = data.payload?.menstruation?.length > 0;
 
+        // 최근 데이터가 하나도 없을 경우 사용자 친화적 피드백 제공
+        if (!latestWeight && !latestBodyFat && !latestSleep && !latestPeriod) {
+          showToast('최근 7일간 동기화된 데이터가 없습니다. 삼성 헬스 앱을 실행한 뒤 다시 불러와 주세요!', 'error');
+          return;
+        }
+
         setFormData((prev) => ({
           ...prev,
           ...(latestWeight  ? { weight:    parseFloat(latestWeight.toFixed(1))   } : {}),
@@ -116,8 +122,10 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
     };
 
     window.addEventListener('message', handleMessage);
+    document.addEventListener('message', handleMessage as any); // 안드로이드 특정 웹뷰 전달 누락 우회용
     return () => {
       window.removeEventListener('message', handleMessage);
+      document.removeEventListener('message', handleMessage as any);
     };
   }, [isOpen]);
 
