@@ -56,6 +56,14 @@ export default function SettingsPage() {
       updateUserSettings({ reminderEnabled: false });
       return;
     }
+
+    // 모바일 앱 WebView 환경 탐지
+    const isMobileApp = typeof window !== 'undefined' && !!(window as any).ReactNativeWebView;
+    if (isMobileApp) {
+      showToast('모바일 앱 기기 알림 기능은 추후 정식 업데이트될 예정입니다! 🔔', 'success');
+      return;
+    }
+
     if (!('Notification' in window)) {
       showToast('이 브라우저는 알림을 지원하지 않습니다.', 'error');
       return;
