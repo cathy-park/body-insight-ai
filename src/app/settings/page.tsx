@@ -7,6 +7,9 @@ import {
   Download, Upload, ShieldCheck, Clock, Database, FileJson,
   AlertTriangle, Ruler, Target, Bell, BellOff, ChevronRight,
 } from 'lucide-react';
+import { getAnonymousDeviceId } from '@/services/userService';
+import { generateSyncCode, resolveSyncCode } from '@/services/syncService';
+
 
 interface ToastState { message: string; type: 'success' | 'error'; }
 
@@ -36,6 +39,11 @@ export default function SettingsPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [syncCode, setSyncCode] = useState<string | null>(null);
+  const [inputSyncCode, setInputSyncCode] = useState('');
+  const [isGeneratingSync, setIsGeneratingSync] = useState(false);
+  const [isResolvingSync, setIsResolvingSync] = useState(false);
+
 
   const settings = getUserSettings();
   const totalRecords = Object.values(userRecords).reduce((s, r) => s + r.length, 0);
@@ -105,10 +113,47 @@ export default function SettingsPage() {
     if (file) processFile(file);
   };
 
+  const handleGenerateSyncCode = async () => {
+    try {
+      setIsGeneratingSync(true);
+      const deviceId = getAnonymousDeviceId();
+      const code = await generateSyncCode(deviceId);
+      setSyncCode(code);
+      showToast('동기화 코드가 성공적으로 발급되었습니다! 📱', 'success');
+    } catch (err: any) {
+      showToast(err.message || '코드 생성 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setIsGeneratingSync(false);
+    }
+  };
+
+  const handleResolveSyncCode = async () => {
+    if (!inputSyncCode.trim()) {
+      showToast('동기화 코드를 입력해주세요.', 'error');
+      return;
+    }
+    try {
+      setIsResolvingSync(true);
+      const newDeviceId = await resolveSyncCode(inputSyncCode);
+      if (newDeviceId) {
+        localStorage.setItem('anonymousUserId', newDeviceId);
+        showToast('기기 연동 성공! 동기화된 데이터를 불러옵니다... 🔄', 'success');
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        showToast('유효하지 않은 동기화 코드입니다. 다시 확인해주세요.', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message || '연동 도중 오류가 발생했습니다.', 'error');
+    } finally {
+      setIsResolvingSync(false);
+    }
+  };
+
+
   const inputClass = "w-24 px-3 py-2 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl outline-none font-bold text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all text-right";
 
   return (
-    <div className="max-w-3xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
+    <div className="max-w-3xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
       <header className="mb-10">
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">설정</p>
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">개인 설정</h1>
@@ -190,6 +235,70 @@ export default function SettingsPage() {
           <BellOff className="w-3 h-3 shrink-0 mt-0.5" aria-hidden="true" />
           알림은 앱이 열려있을 때 브라우저 알림으로 전송됩니다.
         </p>
+      </section>
+
+      {/* 기기 데이터 동기화 (Firestore Sync Code) */}
+      <section className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Database className="w-4 h-4 text-[var(--accent)]" aria-hidden="true" />
+          <h2 className="text-[11px] font-black uppercase tracking-[0.15em] text-[var(--accent)]">기기 데이터 동기화</h2>
+        </div>
+        
+        <div className="space-y-1">
+          <p className="text-[13px] font-bold text-[var(--text-primary)]">모바일-PC 실시간 데이터 연동</p>
+          <p className="text-[11px] text-[var(--text-muted)]">파이어베이스를 통해 모바일에서 작성한 데이터를 PC 브라우저에서도 실시간으로 연동합니다.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[var(--border-subtle)]">
+          {/* 모바일용: 코드 발급 */}
+          <div className="bg-[var(--surface-2)] p-4 rounded-2xl border border-[var(--border)] flex flex-col justify-between gap-3">
+            <div>
+              <p className="text-[12px] font-bold text-[var(--text-primary)] mb-1">📱 모바일에서 오신 경우</p>
+              <p className="text-[11px] text-[var(--text-muted)]">PC에 입력할 8자리 연동 코드를 생성합니다.</p>
+            </div>
+            {syncCode ? (
+              <div className="bg-white border-2 border-[var(--accent)] px-4 py-3 rounded-xl text-center animate-pulse shadow-sm">
+                <p className="text-[10px] font-bold text-[var(--accent)] mb-0.5">보안 동기화 코드</p>
+                <p className="text-xl font-black text-[var(--text-primary)] tracking-widest">
+                  {syncCode.slice(0, 4)} {syncCode.slice(4)}
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={handleGenerateSyncCode}
+                disabled={isGeneratingSync}
+                className="w-full py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-bold text-[13px] transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shadow-[var(--shadow-card)] shadow-[var(--accent-soft)]"
+              >
+                {isGeneratingSync ? '코드 발급 중...' : '8자리 연동코드 발급'}
+              </button>
+            )}
+          </div>
+
+          {/* PC용: 코드 입력 */}
+          <div className="bg-[var(--surface-2)] p-4 rounded-2xl border border-[var(--border)] flex flex-col justify-between gap-3">
+            <div>
+              <p className="text-[12px] font-bold text-[var(--text-primary)] mb-1">💻 PC에서 오신 경우</p>
+              <p className="text-[11px] text-[var(--text-muted)]">모바일에 뜬 8자리 코드를 그대로 입력하세요.</p>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="8자리 코드 입력"
+                maxLength={12}
+                value={inputSyncCode}
+                onChange={(e) => setInputSyncCode(e.target.value)}
+                className="flex-1 px-3 py-2.5 bg-white border border-[var(--border)] rounded-xl outline-none font-bold text-sm text-[var(--text-primary)] text-center focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent shadow-inner"
+              />
+              <button
+                onClick={handleResolveSyncCode}
+                disabled={isResolvingSync}
+                className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-bold text-[13px] transition-all active:scale-[0.98] cursor-pointer shadow-md shadow-cyan-100 shrink-0"
+              >
+                {isResolvingSync ? '연동...' : '연동하기'}
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* 데이터 현황 */}

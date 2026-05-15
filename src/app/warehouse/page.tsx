@@ -154,7 +154,7 @@ export default function WarehousePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
+    <div className="max-w-5xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       <header className="mb-10">
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">자료 관리</p>

@@ -118,7 +118,7 @@ export function Navigation() {
       {/* Top Navigation — solid fixed bar */}
       <nav
         aria-label="주 내비게이션"
-        className="fixed top-0 left-0 right-0 z-50 h-[60px] bg-white border-b border-[var(--border)] shadow-sm"
+        className="fixed top-0 left-0 right-0 z-50 h-[60px] bg-white/90 backdrop-blur-md border-b border-black/[0.03] shadow-[0_2px_12px_rgba(0,0,0,0.02)]"
       >
         <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
 

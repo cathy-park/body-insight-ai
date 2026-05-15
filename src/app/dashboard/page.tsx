@@ -295,7 +295,7 @@ export default function DashboardPage() {
   const goalGap = target && latest ? parseFloat((latest.weight - target).toFixed(1)) : null;
 
   return (
-    <div className="max-w-7xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
+    <div className="max-w-7xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       {/* ── Header ── */}
       <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mt-5 mb-10">
