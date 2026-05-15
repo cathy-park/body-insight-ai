@@ -66,7 +66,7 @@ export default function GuidePage() {
   const filteredGuides = activeTab === 'all' ? guides : guides.filter(g => g.category === activeTab);
 
   return (
-    <div className="max-w-6xl mx-auto pt-[84px] px-5 sm:px-10 pb-28 md:pb-10 space-y-10 animate-fade-up">
+    <div className="max-w-6xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-10 animate-fade-up">
       
       {/* Header section */}
       <header className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent border border-blue-500/10 overflow-hidden shadow-sm">

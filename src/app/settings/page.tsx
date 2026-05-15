@@ -108,7 +108,7 @@ export default function SettingsPage() {
   const inputClass = "w-24 px-3 py-2 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl outline-none font-bold text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all text-right";
 
   return (
-    <div className="max-w-3xl mx-auto pt-[84px] px-5 sm:px-10 pb-28 md:pb-10 space-y-6 animate-fade-up">
+    <div className="max-w-3xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
       <header>
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">설정</p>
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">개인 설정</h1>

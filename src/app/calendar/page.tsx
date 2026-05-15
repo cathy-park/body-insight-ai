@@ -123,7 +123,7 @@ export default function CalendarPage() {
   const inputClass = "w-full px-3 py-2.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl outline-none font-bold text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all cursor-text";
 
   return (
-    <div className="max-w-5xl mx-auto pt-[84px] px-5 sm:px-10 pb-28 md:pb-10 animate-fade-up">
+    <div className="max-w-5xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 animate-fade-up">
 
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

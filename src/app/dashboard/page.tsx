@@ -252,7 +252,7 @@ export default function DashboardPage() {
 
   if (!mounted) {
     return (
-      <div className="max-w-7xl mx-auto pt-[84px] px-5 sm:px-10 pb-28 space-y-4">
+      <div className="max-w-7xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-4">
         <div className="skeleton h-20 rounded-2xl" />
         <div className="skeleton h-48 rounded-2xl" />
         <div className="skeleton h-96 rounded-2xl" />
@@ -262,7 +262,7 @@ export default function DashboardPage() {
 
   if (records.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto pt-[84px] px-5 sm:px-10 pb-28 md:pb-12 flex flex-col items-center justify-center min-h-[80dvh] animate-fade-up">
+      <div className="max-w-2xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 flex flex-col items-center justify-center min-h-[80dvh] animate-fade-up">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--accent)] to-cyan-400 flex items-center justify-center shadow-xl shadow-cyan-200 mb-6">
           <Activity className="w-8 h-8 text-white" aria-hidden="true" />
         </div>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
   const goalGap = target && latest ? parseFloat((latest.weight - target).toFixed(1)) : null;
 
   return (
-    <div className="max-w-7xl mx-auto pt-[84px] md:pt-[84px] px-5 sm:px-10 pb-28 md:pb-12 space-y-6 animate-fade-up">
+    <div className="max-w-7xl mx-auto pt-[60px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       {/* ── Header ── */}
       <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">

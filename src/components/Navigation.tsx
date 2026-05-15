@@ -115,13 +115,12 @@ export function Navigation() {
 
   return (
     <>
-      {/* Desktop Top Navigation — floating glass pill */}
+      {/* Top Navigation — solid fixed bar */}
       <nav
         aria-label="주 내비게이션"
-        className="fixed top-0 left-0 right-0 z-50 h-[72px] pointer-events-none"
+        className="fixed top-0 left-0 right-0 z-50 h-[60px] bg-white border-b border-[var(--border)] shadow-sm"
       >
-        <div className="mx-auto h-full max-w-7xl px-4 sm:px-6 flex items-start pt-3">
-          <div className="w-full flex items-center justify-between bg-white/85 backdrop-blur-2xl border border-[var(--border)] rounded-2xl px-4 sm:px-5 h-[52px] shadow-[var(--shadow-glass)] pointer-events-auto">
+        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
 
             {/* Logo + Desktop Nav */}
             <div className="flex items-center gap-4 sm:gap-6">
@@ -330,17 +329,15 @@ export function Navigation() {
                 </div>
               )}
             </div>
-          </div>
         </div>
       </nav>
 
-      {/* Mobile Bottom Tab Bar — floating pill */}
+      {/* Mobile Bottom Tab Bar — solid fixed bar */}
       <nav
         aria-label="모바일 하단 메뉴"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe pointer-events-none"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-[60px] bg-white border-t border-[var(--border)] shadow-[0_-1px_4px_0_rgb(0_0_0/0.04)]"
       >
-        <div className="mx-4 mb-8 bg-white/90 backdrop-blur-2xl border border-[var(--border)] rounded-2xl shadow-[var(--shadow-elevated)] pointer-events-auto">
-          <div className="flex items-center justify-around h-[60px] px-2">
+          <div className="flex items-center justify-around h-full px-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
@@ -368,7 +365,6 @@ export function Navigation() {
               );
             })}
           </div>
-        </div>
       </nav>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}

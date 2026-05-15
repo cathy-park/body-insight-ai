@@ -94,6 +94,11 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
     const handleMessage = (event: any) => {
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+        if (data?.type === 'HEALTH_DATA_ERROR') {
+          showToast(data.error || '삼성 헬스 데이터를 가져오는 중 오류가 발생했습니다.', 'error');
+          return;
+        }
         if (data?.type !== 'HEALTH_DATA_RESULT') return;
 
         const latestWeight  = data.payload?.weight?.[0]?.weight?.inKilograms;
@@ -159,7 +164,7 @@ export function RecordModal({ isOpen, onClose }: RecordModalProps) {
     <>
     {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] p-0 sm:p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] px-0 pt-0 pb-[68px] sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label="건강 기록 입력"
