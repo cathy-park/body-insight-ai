@@ -33,7 +33,7 @@ function SettingRow({ label, sub, children }: { label: string; sub?: string; chi
 export default function SettingsPage() {
   const {
     users, userRecords, exportData, importData, lastBackupAt,
-    getUserSettings, updateUserSettings,
+    getUserSettings, updateUserSettings, currentUserId, getRecords,
   } = useHealthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
