@@ -10,7 +10,6 @@ import { Toast } from '@/components/Toast';
 interface RecordModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialDate?: string; // yyyy-MM-dd
 }
 
 function Toggle({ name, checked, onChange, label, sub }: {
@@ -36,13 +35,13 @@ function Toggle({ name, checked, onChange, label, sub }: {
   );
 }
 
-export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) {
+export function RecordModal({ isOpen, onClose }: RecordModalProps) {
   const addRecord      = useHealthStore((state) => state.addRecord);
   const getRecords     = useHealthStore((state) => state.getRecords);
   const getUserSettings = useHealthStore((state) => state.getUserSettings);
 
   const blankForm: NewHealthRecord = {
-    date: initialDate || format(new Date(), 'yyyy-MM-dd'),
+    date: format(new Date(), 'yyyy-MM-dd'),
     weight: 0, skeletal_muscle: 0, body_fat: 0, body_fat_mass: 0,
     visceral_fat_level: 0, abdominal_fat_ratio: 0,
     waist_circumference_belly: 0, waist_circumference_beauty: 0,
@@ -51,58 +50,36 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
   };
 
   const [formData, setFormData] = useState<NewHealthRecord>(blankForm);
-  const [sleepH, setSleepH] = useState(7);
-  const [sleepM, setSleepM] = useState(0);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const showToast = (message: string, type: 'success' | 'error') => setToast({ message, type });
 
   useEffect(() => {
     if (!isOpen) return;
-    
+    // 가장 최근 기록으로 prefill — 날짜·메모만 초기화
     const records = getRecords();
-    const existing = initialDate ? records.find(r => r.date === initialDate) : null;
-    
-    if (existing) {
-      setFormData({
-        ...existing,
-        memo: existing.memo || '',
-      });
-      const h = Math.floor(existing.sleep_hours);
-      const m = Math.round((existing.sleep_hours - h) * 60);
-      setSleepH(h);
-      setSleepM(m);
-    } else {
-      const latest = records.length > 0
-        ? [...records].sort((a, b) => b.date.localeCompare(a.date))[0]
-        : null;
+    const latest  = records.length > 0
+      ? [...records].sort((a, b) => b.date.localeCompare(a.date))[0]
+      : null;
 
-      setFormData({
-        ...blankForm,
-        weight:                     latest?.weight                     ?? 0,
-        skeletal_muscle:            latest?.skeletal_muscle            ?? 0,
-        body_fat:                   latest?.body_fat                   ?? 0,
-        body_fat_mass:              latest?.body_fat_mass              ?? 0,
-        visceral_fat_level:         latest?.visceral_fat_level         ?? 0,
-        abdominal_fat_ratio:        latest?.abdominal_fat_ratio        ?? 0,
-        waist_circumference_belly:  latest?.waist_circumference_belly  ?? 0,
-        waist_circumference_beauty: latest?.waist_circumference_beauty ?? 0,
-        sleep_hours:                latest?.sleep_hours                ?? 7,
-        bowel_condition:            latest?.bowel_condition            ?? 'normal',
-        period_flag:                latest?.period_flag                ?? false,
-        mounjaro_flag:              latest?.mounjaro_flag              ?? false,
-        mounjaro_dose:              latest?.mounjaro_dose              ?? 0,
-      });
-      
-      const h = Math.floor(latest?.sleep_hours ?? 7);
-      const m = Math.round(((latest?.sleep_hours ?? 7) - h) * 60);
-      setSleepH(h);
-      setSleepM(m);
-    }
-  }, [isOpen, initialDate]);
-
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, sleep_hours: sleepH + (sleepM / 60) }));
-  }, [sleepH, sleepM]);
+    setFormData({
+      date:                       format(new Date(), 'yyyy-MM-dd'),
+      weight:                     latest?.weight                     ?? 0,
+      skeletal_muscle:            latest?.skeletal_muscle            ?? 0,
+      body_fat:                   latest?.body_fat                   ?? 0,
+      body_fat_mass:              latest?.body_fat_mass              ?? 0,
+      visceral_fat_level:         latest?.visceral_fat_level         ?? 0,
+      abdominal_fat_ratio:        latest?.abdominal_fat_ratio        ?? 0,
+      waist_circumference_belly:  latest?.waist_circumference_belly  ?? 0,
+      waist_circumference_beauty: latest?.waist_circumference_beauty ?? 0,
+      sleep_hours:                latest?.sleep_hours                ?? 7,
+      alcohol_flag:               false,
+      bowel_condition:            latest?.bowel_condition            ?? 'normal',
+      period_flag:                latest?.period_flag                ?? false,
+      mounjaro_flag:              latest?.mounjaro_flag              ?? false,
+      mounjaro_dose:              latest?.mounjaro_dose              ?? 0,
+      memo: '',
+    });
+  }, [isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -132,6 +109,7 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
           : undefined;
         const latestPeriod  = data.payload?.menstruation?.length > 0;
 
+        // 최근 데이터가 하나도 없을 경우 사용자 친화적 피드백 제공
         if (!latestWeight && !latestBodyFat && !latestSleep && !latestPeriod) {
           showToast('최근 7일간 동기화된 데이터가 없습니다. 삼성 헬스 앱을 실행한 뒤 다시 불러와 주세요!', 'error');
           return;
@@ -144,18 +122,12 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
           ...(latestSleep   ? { sleep_hours: parseFloat(latestSleep.toFixed(1))  } : {}),
           ...(latestPeriod  ? { period_flag: true }                               : {}),
         }));
-
-        if (latestSleep) {
-          setSleepH(Math.floor(latestSleep));
-          setSleepM(Math.round((latestSleep - Math.floor(latestSleep)) * 60));
-        }
-
         showToast('삼성 헬스 건강 데이터를 성공적으로 불러왔습니다!', 'success');
       } catch { /* ignored */ }
     };
 
     window.addEventListener('message', handleMessage);
-    document.addEventListener('message', handleMessage as any);
+    document.addEventListener('message', handleMessage as any); // 안드로이드 특정 웹뷰 전달 누락 우회용
     return () => {
       window.removeEventListener('message', handleMessage);
       document.removeEventListener('message', handleMessage as any);
@@ -325,51 +297,17 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className={labelClass}>수면 시간</label>
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <select
-                          value={sleepH}
-                          onChange={(e) => setSleepH(parseInt(e.target.value))}
-                          className={`${inputClass} appearance-none pr-8`}
-                        >
-                          {Array.from({ length: 25 }).map((_, i) => (
-                            <option key={i} value={i}>{i}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[var(--text-muted)] pointer-events-none">H</span>
-                      </div>
-                      <div className="relative flex-1">
-                        <select
-                          value={sleepM}
-                          onChange={(e) => setSleepM(parseInt(e.target.value))}
-                          className={`${inputClass} appearance-none pr-8`}
-                        >
-                          {[0, 10, 20, 30, 40, 50].map((m) => (
-                            <option key={m} value={m}>{m}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[var(--text-muted)] pointer-events-none">M</span>
-                      </div>
-                    </div>
+                  <div>
+                    <label htmlFor="modal-sleep_hours" className={labelClass}>수면 시간 (h)</label>
+                    <input id="modal-sleep_hours" type="number" step="0.5" name="sleep_hours" value={formData.sleep_hours || ''} onChange={handleChange} className={inputClass} placeholder="7.0" inputMode="decimal" />
                   </div>
                   <div>
-                    <label className={labelClass}>배변 상태</label>
-                    <div className="h-[46px] flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, bowel_condition: prev.bowel_condition === 'good' ? 'normal' : 'good' }))}
-                        className={`w-full h-full rounded-xl border font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                          formData.bowel_condition === 'good'
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm'
-                            : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'
-                        }`}
-                      >
-                        <div className={`w-2 h-2 rounded-full ${formData.bowel_condition === 'good' ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-                        배변 성공
-                      </button>
-                    </div>
+                    <label htmlFor="modal-bowel_condition" className={labelClass}>배변 상태</label>
+                    <select id="modal-bowel_condition" name="bowel_condition" value={formData.bowel_condition} onChange={handleChange} className={inputClass}>
+                      <option value="good">좋음</option>
+                      <option value="normal">보통</option>
+                      <option value="bad">나쁨</option>
+                    </select>
                   </div>
                 </div>
 
