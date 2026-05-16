@@ -300,13 +300,13 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       {/* ── Header ── */}
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-10">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-5 sm:mb-10">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">나의 건강 대시보드</p>
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 기록 분석</h1>
 
           {/* Stat chips */}
-          <div className="flex flex-wrap items-center gap-2 mt-2">
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
             {latest?.weight ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-soft)] text-[12px] font-black text-[var(--accent)]">
                 <Scale className="w-3 h-3" />
@@ -333,7 +333,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={() => setIsRecordModalOpen(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white px-5 py-3 rounded-2xl text-sm font-black hover:opacity-90 transition-all shadow-lg shadow-cyan-200 self-start sm:self-auto shrink-0 active:scale-95 cursor-pointer"
+          className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white px-5 py-3 rounded-2xl text-sm font-black hover:opacity-90 transition-all shadow-lg shadow-cyan-200 self-start sm:self-auto shrink-0 active:scale-95 cursor-pointer"
         >
           <PlusCircle className="w-4 h-4" />오늘 기록하기
         </button>
@@ -343,10 +343,10 @@ export default function DashboardPage() {
       <BodySignalSection records={records} />
 
       {/* ── Filter bar ── */}
-      <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-x-auto scrollbar-hide w-fit" role="group" aria-label="기간 필터">
+      <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] w-full sm:w-fit sm:overflow-x-auto sm:scrollbar-hide" role="group" aria-label="기간 필터">
         {(Object.keys(FILTER_LABELS) as (keyof typeof FILTER_LABELS)[]).map((f) => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
-            className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
+            className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer text-center ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
             {FILTER_LABELS[f]}
           </button>
         ))}
@@ -592,7 +592,16 @@ export default function DashboardPage() {
       )}
 
       </div>
-      
+
+      {/* Mobile FAB — sm 이상에서는 숨김, 하단 내비게이션 + safe-area 위에 배치 */}
+      <button
+        onClick={() => setIsRecordModalOpen(true)}
+        className="fixed bottom-[calc(68px+env(safe-area-inset-bottom,0px))] right-5 z-40 sm:hidden w-14 h-14 bg-gradient-to-br from-[var(--accent)] to-cyan-500 text-white rounded-full shadow-xl shadow-cyan-300/60 flex items-center justify-center active:scale-95 transition-all duration-200 cursor-pointer"
+        aria-label="오늘 기록하기"
+      >
+        <PlusCircle className="w-6 h-6" />
+      </button>
+
       <RecordModal isOpen={isRecordModalOpen} onClose={() => setIsRecordModalOpen(false)} />
     </>
   );

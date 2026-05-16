@@ -143,10 +143,10 @@ export function BodySignalSection({ records }: Props) {
     <section aria-label="오늘의 바디 신호" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-5">
       <SectionHeader hasUrgent={hasUrgent} />
 
-      {/* 모바일: 가로 스크롤 / sm+: 2열 그리드 / lg+: 2열 (카드 최대 4개) */}
-      <div className="mt-4 flex gap-3 overflow-x-auto pb-1 scrollbar-hide sm:grid sm:grid-cols-2 sm:overflow-visible">
+      {/* 모바일: 가로 스크롤(첫 카드 잘 보이고 다음 카드 살짝 노출) / sm+: 2열 그리드 */}
+      <div className="mt-4 flex gap-4 overflow-x-auto pb-1 scrollbar-hide sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible">
         {signals.map((signal) => (
-          <div key={signal.id} className="shrink-0 w-[240px] sm:w-auto">
+          <div key={signal.id} className="shrink-0 w-[260px] sm:w-auto">
             <SignalCard signal={signal} />
           </div>
         ))}
@@ -165,14 +165,15 @@ const LEGEND_ITEMS = [
 function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-3">
+      {/* 좌측: 제목 + 모바일 범례 */}
       <div>
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-0.5">
           <span aria-hidden="true">🧬</span>바디 신호 분석
         </p>
         <h2 className="text-base font-black text-[var(--text-primary)]">오늘의 바디 신호</h2>
 
-        {/* 상태 범례 */}
-        <div className="flex items-center gap-3 mt-1.5" aria-label="상태 범례">
+        {/* 모바일 범례: 배경 없이 도트+라벨만, 제목 바로 아래 */}
+        <div className="sm:hidden flex items-center gap-3 mt-1.5" aria-label="상태 범례">
           {LEGEND_ITEMS.map(({ dot, label }) => (
             <span key={label} className="flex items-center gap-1">
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
@@ -182,16 +183,33 @@ function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent
         </div>
       </div>
 
-      <span
-        className={[
-          'text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 mt-0.5',
-          hasUrgent
-            ? 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-soft)]'
-            : 'text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border-subtle)]',
-        ].join(' ')}
-      >
-        최근 기록 기준
-      </span>
+      {/* 우측: PC 범례 배경박스 + 배지 스택 */}
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        {/* PC 전용 범례 — 배경박스, 디자인 시스템 surface-2 + border-subtle */}
+        <div
+          className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+          aria-label="상태 범례"
+        >
+          {LEGEND_ITEMS.map(({ dot, label }) => (
+            <span key={label} className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
+              <span className="text-[10px] font-semibold text-[var(--text-muted)]">{label}</span>
+            </span>
+          ))}
+        </div>
+
+        {/* 최근 기록 기준 배지 */}
+        <span
+          className={[
+            'text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0',
+            hasUrgent
+              ? 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-soft)]'
+              : 'text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border-subtle)]',
+          ].join(' ')}
+        >
+          최근 기록 기준
+        </span>
+      </div>
     </div>
   );
 }
