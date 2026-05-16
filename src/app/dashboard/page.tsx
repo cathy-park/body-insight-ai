@@ -352,32 +352,32 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       {/* ── Header ── */}
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-5 sm:mb-10">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-10">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">나의 건강 대시보드</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-0.5 sm:mb-1">나의 건강 대시보드</p>
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 기록 분석</h1>
 
-          {/* Stat chips */}
-          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+          {/* Stat chips — 모바일: 가로 스크롤, PC: 줄바꿈 */}
+          <div className="flex items-center gap-2 mt-1 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap sm:mt-1.5">
             {latest?.weight ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-soft)] text-[12px] font-black text-[var(--accent)]">
+              <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-soft)] text-[12px] font-black text-[var(--accent)]">
                 <Scale className="w-3 h-3" />
                 {latest.weight} kg
               </span>
             ) : null}
             {delta !== null && (
-              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[12px] font-black ${delta < 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : delta > 0 ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'}`}>
+              <span className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[12px] font-black ${delta < 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : delta > 0 ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'}`}>
                 {delta < 0 ? <TrendingDown className="w-3 h-3" /> : delta > 0 ? <TrendingUp className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
                 {delta > 0 ? '+' : ''}{delta} kg
               </span>
             )}
             {goalGap !== null && (
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[12px] font-black ${goalGap <= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-violet-50 border-violet-200 text-violet-600'}`}>
+              <span className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[12px] font-black ${goalGap <= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-violet-50 border-violet-200 text-violet-600'}`}>
                 <Target className="w-3 h-3" />
                 {goalGap <= 0 ? '목표 달성! 🎉' : `목표까지 -${goalGap} kg`}
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[12px] font-bold text-[var(--text-muted)]">
+            <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[12px] font-bold text-[var(--text-muted)]">
               <CalendarDays className="w-3 h-3" />
               {records.length}일 기록
             </span>
@@ -395,10 +395,10 @@ export default function DashboardPage() {
       <BodySignalSection records={records} />
 
       {/* ── Filter bar ── */}
-      <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] w-full sm:w-fit sm:overflow-x-auto sm:scrollbar-hide" role="group" aria-label="기간 필터">
+      <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-0.5 sm:p-1 rounded-2xl border border-[var(--border)] shadow-sm w-full sm:w-fit sm:overflow-x-auto sm:scrollbar-hide" role="group" aria-label="기간 필터">
         {(Object.keys(FILTER_LABELS) as (keyof typeof FILTER_LABELS)[]).map((f) => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
-            className={`flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer text-center flex items-center justify-center ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
+            className={`flex-1 sm:flex-none min-h-[40px] sm:min-h-0 px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer text-center flex items-center justify-center ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
             {FILTER_LABELS[f]}
           </button>
         ))}

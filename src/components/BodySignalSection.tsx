@@ -60,11 +60,10 @@ function SignalCard({ signal }: { signal: BodySignal }) {
   return (
     <article
       className={[
-        'flex flex-col gap-2 p-4 rounded-2xl border transition-all duration-200',
+        'flex flex-col gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-2xl border transition-all duration-200',
         'sm:hover:shadow-md sm:active:scale-[0.98]',
         style.card,
         style.border,
-        // 집중관리는 보더를 약간 두껍게
         isCritical ? 'border-[1.5px]' : 'border',
       ].join(' ')}
       aria-label={signal.title}
@@ -143,10 +142,10 @@ export function BodySignalSection({ records }: Props) {
     <section aria-label="오늘의 바디 신호" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-5">
       <SectionHeader hasUrgent={hasUrgent} />
 
-      {/* 모바일: 가로 스크롤(첫 카드 잘 보이고 다음 카드 살짝 노출) / sm+: 2열 그리드 */}
-      <div className="mt-4 flex gap-4 overflow-x-auto pb-1 scrollbar-hide sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible">
+      {/* 모바일: 가로 스크롤(다음 카드 ~20% 노출) / sm+: 2열 그리드 */}
+      <div className="mt-3 flex gap-3 overflow-x-auto pb-1 scrollbar-hide scroll-smooth snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible">
         {signals.map((signal) => (
-          <div key={signal.id} className="shrink-0 w-[260px] sm:w-auto">
+          <div key={signal.id} className="shrink-0 w-[82vw] sm:w-auto snap-start">
             <SignalCard signal={signal} />
           </div>
         ))}
@@ -164,67 +163,54 @@ const LEGEND_ITEMS = [
 
 function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent?: boolean }) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      {/* 좌측: 제목 + 모바일 범례 */}
-      <div>
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-0.5">
-          <span aria-hidden="true">🧬</span>바디 신호 분석
-        </p>
-        <h2 className="text-base font-black text-[var(--text-primary)]">오늘의 바디 신호</h2>
+    <div className="flex flex-col gap-1.5">
+      {/* 제목 행 */}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-0.5">
+            <span aria-hidden="true">🧬</span>바디 신호 분석
+          </p>
+          <h2 className="text-base font-black text-[var(--text-primary)]">오늘의 바디 신호</h2>
+        </div>
 
-        {/* 모바일 범례: 배경박스, 제목 바로 아래 (PC에서는 숨김) */}
-        <div
-          className="sm:hidden flex items-center gap-2.5 mt-1.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] w-full"
-          aria-label="상태 범례"
-        >
-          {LEGEND_ITEMS.map(({ dot, label }) => (
-            <span key={label} className="flex items-center gap-1">
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
-              <span className="text-[10px] font-semibold text-[var(--text-muted)]">{label}</span>
-            </span>
-          ))}
+        {/* 우측: PC 범례 + 배지 (공통 배지는 항상 표시) */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div
+            className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+            aria-label="상태 범례"
+          >
+            {LEGEND_ITEMS.map(({ dot, label }) => (
+              <span key={label} className="flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
+                <span className="text-[10px] font-semibold text-[var(--text-muted)]">{label}</span>
+              </span>
+            ))}
+          </div>
+          <span
+            className={[
+              'text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 self-start',
+              hasUrgent
+                ? 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-soft)]'
+                : 'text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border-subtle)]',
+            ].join(' ')}
+          >
+            최근 기록 기준
+          </span>
         </div>
       </div>
 
-      {/* 우측: PC 범례 배경박스 + 배지 — 한 줄 가로 정렬 */}
-      <div className="hidden sm:flex items-center gap-2 shrink-0">
-        {/* PC 범례 배경박스 */}
-        <div
-          className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)]"
-          aria-label="상태 범례"
-        >
-          {LEGEND_ITEMS.map(({ dot, label }) => (
-            <span key={label} className="flex items-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
-              <span className="text-[10px] font-semibold text-[var(--text-muted)]">{label}</span>
-            </span>
-          ))}
-        </div>
-
-        {/* 최근 기록 기준 배지 — 범례와 같은 줄 */}
-        <span
-          className={[
-            'text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0',
-            hasUrgent
-              ? 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-soft)]'
-              : 'text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border-subtle)]',
-          ].join(' ')}
-        >
-          최근 기록 기준
-        </span>
-      </div>
-
-      {/* 모바일 전용 배지 */}
-      <span
-        className={[
-          'sm:hidden text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 self-start',
-          hasUrgent
-            ? 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-soft)]'
-            : 'text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border-subtle)]',
-        ].join(' ')}
+      {/* 모바일 범례 — 풀폭 미니 안내 바 */}
+      <div
+        className="sm:hidden flex items-center gap-4 px-3 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] overflow-x-auto scrollbar-hide"
+        aria-label="상태 범례"
       >
-        최근 기록 기준
-      </span>
+        {LEGEND_ITEMS.map(({ dot, label }) => (
+          <span key={label} className="flex items-center gap-1 whitespace-nowrap shrink-0">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
+            <span className="text-[10px] font-semibold text-[var(--text-muted)]">{label}</span>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
