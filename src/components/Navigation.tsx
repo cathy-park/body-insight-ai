@@ -118,7 +118,7 @@ export function Navigation() {
       {/* Top Navigation — solid fixed bar */}
       <nav
         aria-label="주 내비게이션"
-        className="fixed top-0 left-0 right-0 z-50 h-[60px] bg-white/90 backdrop-blur-md border-b border-black/[0.03] shadow-[0_2px_12px_rgba(0,0,0,0.02)]"
+        className="fixed top-0 left-0 right-0 z-[40] h-[60px] bg-white/90 backdrop-blur-md border-b border-black/[0.03] shadow-[0_2px_12px_rgba(0,0,0,0.02)]"
       >
         <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
 
@@ -189,7 +189,7 @@ export function Navigation() {
                 <div
                   role="dialog"
                   aria-label="사용자 관리"
-                  className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-[var(--border)] py-2 z-50"
+                  className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-[var(--border)] py-2 z-[41]"
                 >
                   {/* User management */}
                   <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
@@ -335,7 +335,7 @@ export function Navigation() {
       {/* Mobile Bottom Tab Bar — solid fixed bar */}
       <nav
         aria-label="모바일 하단 메뉴"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-[60px] bg-white border-t border-[var(--border)] shadow-[0_-1px_4px_0_rgb(0_0_0/0.04)] will-change-transform"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-[40] h-[60px] bg-white border-t border-[var(--border)] shadow-[0_-1px_4px_0_rgb(0_0_0/0.04)] will-change-transform"
         style={{ transform: 'translate3d(0,0,0)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
       >
           <div className="flex items-center justify-around h-full px-2">

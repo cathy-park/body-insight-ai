@@ -134,7 +134,7 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
     <>
     {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] px-0 pt-0 pb-[68px] sm:p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-[10000] px-0 pt-0 pb-[68px] sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label="건강 기록 입력"
@@ -334,8 +334,6 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
                         <option value={5.0}>5.0 mg</option>
                         <option value={7.5}>7.5 mg</option>
                         <option value={10.0}>10.0 mg</option>
-                        <option value={12.5}>12.5 mg</option>
-                        <option value={15.0}>15.0 mg</option>
                       </select>
                     </div>
                   )}
