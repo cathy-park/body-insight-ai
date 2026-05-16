@@ -7,6 +7,7 @@ import { NewHealthRecord } from '@/types';
 import { Save, Activity, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Toast } from '@/components/Toast';
+import { getMounjaroDoseColor, MOUNJARO_DOSES } from '@/lib/mounjaro';
 
 interface RecordModalProps {
   isOpen: boolean;
@@ -134,16 +135,16 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
     <>
     {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-[10000] px-0 pt-0 pb-[68px] sm:p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-md flex flex-col sm:items-center sm:justify-center z-[10000] sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label="건강 기록 입력"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-[var(--surface-0)] w-full max-w-5xl rounded-t-[28px] sm:rounded-[28px] border border-[var(--border)] shadow-[var(--shadow-elevated)] overflow-hidden max-h-[94dvh] sm:max-h-[90vh] flex flex-col">
+      <div className="bg-[var(--surface-0)] w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:rounded-[28px] border-x-0 border-t-0 sm:border border-[var(--border)] shadow-[var(--shadow-elevated)] overflow-hidden flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] shrink-0 bg-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] shrink-0 bg-white sm:rounded-t-[28px]">
           <div>
             <h2 className="text-[17px] font-black text-[var(--text-primary)] tracking-tight">건강 기록하기</h2>
             <p className="text-[12px] text-[var(--text-muted)] mt-0.5">신체 측정값, 생활 습관을 기록하세요</p>
@@ -320,8 +321,18 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
                     sub="GLP-1 비만치료 주사"
                   />
                   {formData.mounjaro_flag && (
-                    <div className="pb-3 border-t border-[var(--border-subtle)] pt-3">
-                      <label htmlFor="modal-mounjaro_dose" className={labelClass}>투여 용량 (mg)</label>
+                    <div className="pb-3 border-t border-[var(--border-subtle)] pt-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="modal-mounjaro_dose" className={labelClass}>투여 용량 (mg)</label>
+                        {(formData.mounjaro_dose ?? 0) > 0 && (
+                          <span
+                            className="text-[11px] font-black px-2.5 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: getMounjaroDoseColor(formData.mounjaro_dose ?? 0) }}
+                          >
+                            {formData.mounjaro_dose}mg
+                          </span>
+                        )}
+                      </div>
                       <select
                         id="modal-mounjaro_dose"
                         name="mounjaro_dose"
@@ -330,10 +341,9 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
                         className="w-full px-3 py-2.5 bg-white border border-[var(--border)] rounded-xl font-bold text-[var(--text-primary)] text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] cursor-pointer"
                       >
                         <option value={0}>용량 선택</option>
-                        <option value={2.5}>2.5 mg</option>
-                        <option value={5.0}>5.0 mg</option>
-                        <option value={7.5}>7.5 mg</option>
-                        <option value={10.0}>10.0 mg</option>
+                        {MOUNJARO_DOSES.map(d => (
+                          <option key={d} value={d}>{d} mg</option>
+                        ))}
                       </select>
                     </div>
                   )}
@@ -344,7 +354,7 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
         </div>
 
         {/* Bottom action bar */}
-        <div className="px-5 py-4 bg-white border-t border-[var(--border)] flex items-center justify-end gap-3 shrink-0">
+        <div className="px-5 py-4 bg-white border-t border-[var(--border)] flex items-center justify-end gap-3 shrink-0 sm:rounded-b-[28px] mb-[safe-area-inset-bottom]">
           <button
             onClick={onClose}
             className="px-5 py-3 text-sm font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-2)] rounded-xl border border-[var(--border)] transition-all cursor-pointer min-h-[44px]"

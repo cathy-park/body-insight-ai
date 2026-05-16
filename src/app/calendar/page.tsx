@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { useHealthStore } from '@/store/useHealthStore';
 import { RecordModal } from '@/components/RecordModal';
+import { getMounjaroDoseColor } from '@/lib/mounjaro';
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -189,7 +190,14 @@ export default function CalendarPage() {
                     <div className="flex gap-0.5 items-center">
                       {record.alcohol_flag && <Wine className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500" aria-hidden="true" />}
                       {record.bowel_condition === 'good' && <Smile className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500" aria-hidden="true" />}
-                      {record.mounjaro_flag && <span className="text-[7px] font-black text-violet-500 bg-violet-50 px-1 rounded-full hidden sm:block">MJ</span>}
+                      {record.mounjaro_flag && (
+                        <span
+                          className="text-[6px] sm:text-[7px] font-black px-1 rounded-full text-white whitespace-nowrap"
+                          style={{ backgroundColor: getMounjaroDoseColor(record.mounjaro_dose ?? 0) }}
+                        >
+                          {(record.mounjaro_dose ?? 0) > 0 ? `${record.mounjaro_dose}mg` : 'MJ'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}
