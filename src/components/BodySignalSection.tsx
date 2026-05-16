@@ -142,10 +142,10 @@ export function BodySignalSection({ records }: Props) {
     <section aria-label="오늘의 바디 신호" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-5">
       <SectionHeader hasUrgent={hasUrgent} />
 
-      {/* 모바일: 가로 스크롤(다음 카드 ~20% 노출) / sm+: 2열 그리드 */}
-      <div className="mt-3 flex gap-3 overflow-x-auto pb-1 scrollbar-hide scroll-smooth snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible">
+      {/* 모바일: 가로 스크롤 캐러셀(다음 카드 20~27% 노출) / sm+: 2열 그리드 */}
+      <div className="mt-3 flex flex-row gap-3 overflow-x-auto pb-1 scrollbar-hide scroll-smooth snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible">
         {signals.map((signal) => (
-          <div key={signal.id} className="shrink-0 w-[82vw] sm:w-auto snap-start">
+          <div key={signal.id} className="shrink-0 [flex:0_0_63vw] sm:flex-none sm:w-auto snap-start">
             <SignalCard signal={signal} />
           </div>
         ))}
