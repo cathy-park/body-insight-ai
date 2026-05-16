@@ -360,7 +360,7 @@ export default function DashboardPage() {
           <p className="text-sm text-[var(--text-muted)] mt-1 sm:mt-1.5">체중, 체성분, 기록 흐름을 한눈에 확인하세요.</p>
 
           {/* Stat chips — 모바일: 가로 스크롤, PC: 줄바꿈 */}
-          <div className="flex items-center gap-2 mt-1.5 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap sm:mt-2">
+          <div className="flex items-center gap-2 mt-3 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap sm:mt-3">
             {latest?.weight ? (
               <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-soft)] text-[12px] font-black text-[var(--accent)]">
                 <Scale className="w-3 h-3" />
