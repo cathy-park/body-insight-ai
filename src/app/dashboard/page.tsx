@@ -16,6 +16,12 @@ import {
 import { SummaryCards } from '@/components/SummaryCards';
 import { RecordModal } from '@/components/RecordModal';
 import { BodySignalSection } from '@/components/BodySignalSection';
+import {
+  computeWeeklyCompositionReport,
+  getDeltaColorClass,
+  formatDelta,
+  type WeeklyCompositionReport,
+} from '@/lib/weeklyReport';
 
 type MetricKey = 'weight' | 'skeletal_muscle' | 'body_fat_mass' | 'body_fat' | 'visceral_fat_level' | 'abdominal_fat_ratio' | 'waist_circumference_belly' | 'waist_circumference_beauty';
 
@@ -163,8 +169,8 @@ export default function DashboardPage() {
     return opts;
   }, [records]);
 
-  // ── 주간 리포트 (선택한 주차 기준) ────────────────────────────────
-  const weeklyReport = useMemo(() => {
+  // ── 주간 체성분 리포트 (선택한 주차 기준) ───────────────────────
+  const weeklyReport = useMemo<WeeklyCompositionReport | null>(() => {
     if (!records.length) return null;
     const now        = new Date();
     const thisMonday = startOfWeek(now);
@@ -182,7 +188,6 @@ export default function DashboardPage() {
     prevSunday.setHours(23, 59, 59, 999);
 
     const effectiveEnd = selectedWeekOffset === 0 ? now : selSunday;
-
     const inRange = (date: string, from: Date, to: Date) => {
       const d = new Date(date); return d >= from && d <= to;
     };
@@ -190,16 +195,7 @@ export default function DashboardPage() {
     const selRecs  = records.filter(r => inRange(r.date, selMonday,  effectiveEnd));
     const prevRecs = records.filter(r => inRange(r.date, prevMonday, prevSunday));
 
-    const avgWeight = (recs: typeof records) => {
-      const w = recs.filter(r => r.weight > 0);
-      return w.length ? parseFloat((w.reduce((s, r) => s + r.weight, 0) / w.length).toFixed(1)) : null;
-    };
-
-    const thisAvg = avgWeight(selRecs);
-    const lastAvg = avgWeight(prevRecs);
-    const delta   = thisAvg !== null && lastAvg !== null ? parseFloat((thisAvg - lastAvg).toFixed(1)) : null;
-
-    return { thisAvg, lastAvg, delta, days: selRecs.length };
+    return computeWeeklyCompositionReport(selRecs, prevRecs);
   }, [records, selectedWeekOffset]);
 
   // ── Body composition ──────────────────────────────────────────────
@@ -522,9 +518,9 @@ export default function DashboardPage() {
       {(weeklyReport || compositionData) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* Weekly report */}
+          {/* Weekly composition report */}
           {weeklyReport && (
-            <section aria-label="주간 체중 리포트" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
+            <section aria-label="주간 체성분 리포트" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
 
               {/* 헤더: 제목 + 주차 드롭다운 */}
               <div className="flex items-start justify-between gap-2 mb-4">
@@ -532,7 +528,7 @@ export default function DashboardPage() {
                   <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
                     <CalendarDays className="w-3.5 h-3.5" />주간 리포트
                   </p>
-                  <h2 className="text-base font-black text-[var(--text-primary)]">주간 체중 요약</h2>
+                  <h2 className="text-base font-black text-[var(--text-primary)]">주간 체성분 요약</h2>
                 </div>
                 {weekOptions.length > 0 && (
                   <div className="relative shrink-0 mt-0.5">
@@ -555,39 +551,33 @@ export default function DashboardPage() {
               {weeklyReport.days === 0 ? (
                 <div className="flex flex-col items-center justify-center py-5 text-center gap-2 bg-[var(--surface-2)] rounded-2xl">
                   <CalendarDays className="w-6 h-6 text-[var(--text-muted)] opacity-30" />
-                  <p className="text-[12px] text-[var(--text-muted)] leading-relaxed max-w-[200px]">
+                  <p className="text-[12px] text-[var(--text-muted)] leading-relaxed max-w-[220px]">
                     선택한 주차에는 기록이 없어요.<br />기록이 있는 주차를 선택해 주세요.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-[var(--accent-muted)] rounded-2xl p-4 text-center">
-                    <p className="text-xl font-black text-[var(--accent)]">
-                      {weeklyReport.thisAvg != null ? `${weeklyReport.thisAvg}` : '—'}
+                /* 5개 체성분 지표 + 기록한 날 = 6 미니 카드 (모바일 2열 / PC 3열) */
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {weeklyReport.metrics.map(m => (
+                    <div key={m.key} className="bg-[var(--surface-2)] rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0">
+                      <p className="text-[10px] font-bold text-[var(--text-muted)] truncate">{m.label}</p>
+                      <p className="text-[16px] sm:text-[17px] font-black text-[var(--text-primary)] leading-none">
+                        {m.avg != null ? m.avg : '—'}
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">{m.unit}</span>
+                      </p>
+                      <p className={`text-[10px] font-bold leading-snug ${getDeltaColorClass(m.delta, m.isPositiveGood)}`}>
+                        {formatDelta(m.delta, m.unit)}
+                      </p>
+                    </div>
+                  ))}
+                  {/* 기록한 날 — 중립 컬러 */}
+                  <div className="bg-violet-50 rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0">
+                    <p className="text-[10px] font-bold text-violet-400">기록한 날</p>
+                    <p className="text-[16px] sm:text-[17px] font-black text-violet-600 leading-none">
+                      {weeklyReport.days}
+                      <span className="text-[10px] font-bold text-violet-400 ml-0.5">일</span>
                     </p>
-                    <p className="text-[10px] font-bold text-[var(--accent)] opacity-70 mt-1">주 평균 (kg)</p>
-                  </div>
-                  <div className={`rounded-2xl p-4 text-center ${
-                    weeklyReport.delta == null ? 'bg-[var(--surface-2)]'
-                    : weeklyReport.delta < 0   ? 'bg-emerald-50'
-                    : weeklyReport.delta > 0   ? 'bg-rose-50'
-                    : 'bg-[var(--surface-2)]'
-                  }`}>
-                    <p className={`text-xl font-black ${
-                      weeklyReport.delta == null ? 'text-[var(--text-muted)]'
-                      : weeklyReport.delta < 0   ? 'text-emerald-600'
-                      : weeklyReport.delta > 0   ? 'text-rose-500'
-                      : 'text-[var(--text-muted)]'
-                    }`}>
-                      {weeklyReport.delta != null
-                        ? (weeklyReport.delta > 0 ? `+${weeklyReport.delta}` : `${weeklyReport.delta}`)
-                        : '—'}
-                    </p>
-                    <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1">전주 대비 (kg)</p>
-                  </div>
-                  <div className="bg-violet-50 rounded-2xl p-4 text-center">
-                    <p className="text-xl font-black text-violet-600">{weeklyReport.days}</p>
-                    <p className="text-[10px] font-bold text-violet-400 mt-1">기록한 날 (일)</p>
+                    <p className="text-[10px] font-bold text-[var(--text-muted)]">이번 주 기록</p>
                   </div>
                 </div>
               )}
