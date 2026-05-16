@@ -1,4 +1,5 @@
 "use client";
+// UI Update: Unified Record Modal and improved Sleep/Bowel inputs
 
 import React, { useState, useEffect } from 'react';
 import { useHealthStore } from '@/store/useHealthStore';
