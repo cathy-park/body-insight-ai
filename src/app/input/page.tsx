@@ -361,8 +361,6 @@ export default function InputPage() {
                     <option value={5.0}>5.0 mg</option>
                     <option value={7.5}>7.5 mg</option>
                     <option value={10.0}>10.0 mg</option>
-                    <option value={12.5}>12.5 mg</option>
-                    <option value={15.0}>15.0 mg</option>
                   </select>
                 </div>
               )}

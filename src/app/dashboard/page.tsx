@@ -29,14 +29,14 @@ import {
 type MetricKey = 'weight' | 'skeletal_muscle' | 'body_fat_mass' | 'body_fat' | 'visceral_fat_level' | 'abdominal_fat_ratio' | 'waist_circumference_belly' | 'waist_circumference_beauty';
 
 const METRIC_LABELS: Record<MetricKey, { label: string; color: string; unit: string }> = {
-  weight:                    { label: '체중',     color: '#0891b2', unit: 'kg' },
-  skeletal_muscle:           { label: '근육량',   color: '#059669', unit: 'kg' },
-  body_fat_mass:             { label: '지방량',   color: '#d97706', unit: 'kg' },
-  body_fat:                  { label: '지방률',   color: '#dc2626', unit: '%'  },
-  visceral_fat_level:        { label: '내장지방', color: '#7c3aed', unit: 'LV' },
-  abdominal_fat_ratio:       { label: '복부비율', color: '#db2777', unit: ''   },
+  weight: { label: '체중', color: '#0891b2', unit: 'kg' },
+  skeletal_muscle: { label: '근육량', color: '#059669', unit: 'kg' },
+  body_fat_mass: { label: '지방량', color: '#d97706', unit: 'kg' },
+  body_fat: { label: '지방률', color: '#dc2626', unit: '%' },
+  visceral_fat_level: { label: '내장지방', color: '#7c3aed', unit: 'LV' },
+  abdominal_fat_ratio: { label: '복부비율', color: '#db2777', unit: '' },
   waist_circumference_belly: { label: '복부둘레', color: '#0891b2', unit: 'cm' },
-  waist_circumference_beauty:{ label: '미용허리', color: '#0d9488', unit: 'cm' },
+  waist_circumference_beauty: { label: '미용허리', color: '#0d9488', unit: 'cm' },
 };
 
 const FILTER_LABELS = { '30d': '30일', '3m': '3개월', '6m': '6개월', '1y': '1년', 'all': '전체' } as const;
@@ -100,8 +100,8 @@ function startOfWeek(date: Date): Date {
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
-  const userRecords     = useHealthStore((state) => state.userRecords);
-  const currentUserId   = useHealthStore((state) => state.currentUserId);
+  const userRecords = useHealthStore((state) => state.userRecords);
+  const currentUserId = useHealthStore((state) => state.currentUserId);
   const getUserSettings = useHealthStore((state) => state.getUserSettings);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
 
@@ -122,7 +122,7 @@ export default function DashboardPage() {
     if (!records.length) return [];
     if (filter === 'all') return records;
     const lastDate = new Date(records[records.length - 1].date);
-    const daysMap  = { '30d': 30, '3m': 90, '6m': 180, '1y': 365 };
+    const daysMap = { '30d': 30, '3m': 90, '6m': 180, '1y': 365 };
     const cutoff = new Date(lastDate);
     cutoff.setDate(cutoff.getDate() - daysMap[filter]);
     return records.filter(r => new Date(r.date) >= cutoff);
@@ -131,13 +131,13 @@ export default function DashboardPage() {
   // ── 주차 옵션 생성 (기록이 있는 주차만, 최신→과거 순) ──────────────
   const weekOptions = useMemo(() => {
     if (!records.length) return [];
-    const now        = new Date();
+    const now = new Date();
     const thisMonday = startOfWeek(now);
-    const firstMon   = startOfWeek(new Date(records[0].date));
-    const pad        = (n: number) => String(n).padStart(2, '0');
+    const firstMon = startOfWeek(new Date(records[0].date));
+    const pad = (n: number) => String(n).padStart(2, '0');
 
     const opts: { offset: number; label: string }[] = [];
-    let offset    = 0;
+    let offset = 0;
     let curMonday = new Date(thisMonday);
 
     while (curMonday >= firstMon) {
@@ -153,13 +153,13 @@ export default function DashboardPage() {
 
       if (hasRecs) {
         let label: string;
-        if      (offset === 0) label = '이번 주';
+        if (offset === 0) label = '이번 주';
         else if (offset === 1) label = '지난 주';
         else if (offset === 2) label = '2주 전';
         else {
-          const s  = `${curMonday.getFullYear()}.${pad(curMonday.getMonth()+1)}.${pad(curMonday.getDate())}`;
+          const s = `${curMonday.getFullYear()}.${pad(curMonday.getMonth() + 1)}.${pad(curMonday.getDate())}`;
           const eD = curSunday > now ? now : curSunday;
-          const e  = `${pad(eD.getMonth()+1)}.${pad(eD.getDate())}`;
+          const e = `${pad(eD.getMonth() + 1)}.${pad(eD.getDate())}`;
           label = `${s} ~ ${e}`;
         }
         opts.push({ offset, label });
@@ -175,7 +175,7 @@ export default function DashboardPage() {
   // ── 주간 체성분 리포트 (선택한 주차 기준) ───────────────────────
   const weeklyReport = useMemo<WeeklyCompositionReport | null>(() => {
     if (!records.length) return null;
-    const now        = new Date();
+    const now = new Date();
     const thisMonday = startOfWeek(now);
 
     const selMonday = new Date(thisMonday);
@@ -195,7 +195,7 @@ export default function DashboardPage() {
       const d = new Date(date); return d >= from && d <= to;
     };
 
-    const selRecs  = records.filter(r => inRange(r.date, selMonday,  effectiveEnd));
+    const selRecs = records.filter(r => inRange(r.date, selMonday, effectiveEnd));
     const prevRecs = records.filter(r => inRange(r.date, prevMonday, prevSunday));
 
     return computeWeeklyCompositionReport(selRecs, prevRecs);
@@ -207,9 +207,9 @@ export default function DashboardPage() {
     const latest = [...records].reverse().find(r => r.skeletal_muscle > 0 && r.body_fat_mass > 0 && r.weight > 0);
     if (!latest) return null;
     const muscle = latest.skeletal_muscle;
-    const fat    = latest.body_fat_mass;
-    const other  = Math.max(0, parseFloat((latest.weight - muscle - fat).toFixed(1)));
-    
+    const fat = latest.body_fat_mass;
+    const other = Math.max(0, parseFloat((latest.weight - muscle - fat).toFixed(1)));
+
     // Calculate dynamic BMI from latest record or settings
     let bmi = latest.bmi;
     if (!bmi && latest.weight && settings.height) {
@@ -223,8 +223,8 @@ export default function DashboardPage() {
       bmi,
       items: [
         { name: '근육량', value: muscle, color: '#059669', pct: Math.round((muscle / latest.weight) * 100) },
-        { name: '체지방', value: fat,    color: '#dc2626', pct: Math.round((fat    / latest.weight) * 100) },
-        { name: '기타',   value: other,  color: '#94a3b8', pct: Math.round((other  / latest.weight) * 100) },
+        { name: '체지방', value: fat, color: '#dc2626', pct: Math.round((fat / latest.weight) * 100) },
+        { name: '기타', value: other, color: '#94a3b8', pct: Math.round((other / latest.weight) * 100) },
       ],
     };
   }, [records, settings]);
@@ -235,13 +235,13 @@ export default function DashboardPage() {
       .filter(r => selectedMetrics.some(m => (r as any)[m] > 0))
       .map(r => ({
         date: r.date,
-        weight:                     r.weight || null,
-        skeletal_muscle:            r.skeletal_muscle || null,
-        body_fat_mass:              r.body_fat_mass || null,
-        body_fat:                   r.body_fat || null,
-        visceral_fat_level:         r.visceral_fat_level || null,
-        abdominal_fat_ratio:        r.abdominal_fat_ratio || null,
-        waist_circumference_belly:  r.waist_circumference_belly || null,
+        weight: r.weight || null,
+        skeletal_muscle: r.skeletal_muscle || null,
+        body_fat_mass: r.body_fat_mass || null,
+        body_fat: r.body_fat || null,
+        visceral_fat_level: r.visceral_fat_level || null,
+        abdominal_fat_ratio: r.abdominal_fat_ratio || null,
+        waist_circumference_belly: r.waist_circumference_belly || null,
         waist_circumference_beauty: r.waist_circumference_beauty || null,
         trendWeight: null as number | null,
       }));
@@ -355,371 +355,370 @@ export default function DashboardPage() {
   const weeklySummaryComment = weeklyReport ? generateWeeklySummaryComment(weeklyReport) : null;
 
   // ── Derived values for header chips ──────────────────────────────
-  const latest  = records[records.length - 1];
-  const prev    = records.length >= 2 ? records[records.length - 2] : null;
-  const delta   = latest && prev ? parseFloat((latest.weight - prev.weight).toFixed(1)) : null;
-  const target  = settings.targetWeight;
+  const latest = records[records.length - 1];
+  const prev = records.length >= 2 ? records[records.length - 2] : null;
+  const delta = latest && prev ? parseFloat((latest.weight - prev.weight).toFixed(1)) : null;
+  const target = settings.targetWeight;
   const goalGap = target && latest ? parseFloat((latest.weight - target).toFixed(1)) : null;
 
   return (
     <>
       <div className="max-w-7xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
-      {/* ── Header ── */}
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-4 sm:mb-10">
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-0.5 sm:mb-1">나의 건강 대시보드</p>
-          <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 기록 분석</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1 sm:mt-1.5">체중, 체성분, 기록 흐름을 한눈에 확인하세요.</p>
-
-          {/* Stat chips — 모바일: 가로 스크롤, PC: 줄바꿈 */}
-          <div className="flex items-center gap-2 mt-3 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap sm:mt-3">
-            {latest?.weight ? (
-              <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-soft)] text-[12px] font-black text-[var(--accent)]">
-                <Scale className="w-3 h-3" />
-                {latest.weight} kg
-              </span>
-            ) : null}
-            {delta !== null && (
-              <span className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[12px] font-black ${delta < 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : delta > 0 ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'}`}>
-                {delta < 0 ? <TrendingDown className="w-3 h-3" /> : delta > 0 ? <TrendingUp className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
-                {delta > 0 ? '+' : ''}{delta} kg
-              </span>
-            )}
-            {goalGap !== null && (
-              <span className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[12px] font-black ${goalGap <= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-violet-50 border-violet-200 text-violet-600'}`}>
-                <Target className="w-3 h-3" />
-                {goalGap <= 0 ? '목표 달성! 🎉' : `목표까지 -${goalGap} kg`}
-              </span>
-            )}
-            <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[12px] font-bold text-[var(--text-muted)]">
-              <CalendarDays className="w-3 h-3" />
-              {records.length}일 기록
-            </span>
-          </div>
-        </div>
-        <button
-          onClick={() => setIsRecordModalOpen(true)}
-          className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white px-5 py-3 rounded-2xl text-sm font-black hover:opacity-90 transition-all shadow-lg shadow-cyan-200 self-start sm:self-auto shrink-0 active:scale-95 cursor-pointer"
-        >
-          <PlusCircle className="w-4 h-4" />오늘 기록하기
-        </button>
-      </header>
-
-      {/* ── Body signal section ── */}
-      <BodySignalSection records={records} />
-
-      {/* ── Filter bar ── */}
-      <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-0.5 sm:p-1 rounded-2xl border border-[var(--border)] shadow-sm w-full sm:w-fit sm:overflow-x-auto sm:scrollbar-hide" role="group" aria-label="기간 필터">
-        {(Object.keys(FILTER_LABELS) as (keyof typeof FILTER_LABELS)[]).map((f) => (
-          <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
-            className={`flex-1 sm:flex-none min-h-[40px] sm:min-h-0 px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer text-center flex items-center justify-center ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
-            {FILTER_LABELS[f]}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Summary cards ── */}
-      <SummaryCards filteredRecords={filteredRecords} onCardClick={toggleMetric} selectedMetrics={selectedMetrics} />
-
-      {/* ── Main chart ── */}
-      <section aria-label="지표별 변화 추이" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-hidden">
-        <div className="p-6 pb-0 flex flex-wrap items-start justify-between gap-4">
+        {/* ── Header ── */}
+        <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-4 sm:mb-10">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
-              <TrendingUp className="w-3.5 h-3.5" />멀티 트래킹 분석
-            </p>
-            <h2 className="text-lg font-black text-[var(--text-primary)]">지표별 변화 추이</h2>
-            {trendPrediction && selectedMetrics.includes('weight') && (
-              <p className="text-[11px] text-[var(--text-muted)] mt-0.5 flex items-center gap-1">
-                <Flame className="w-3 h-3 text-orange-400" />
-                현재 추세 기준 4주 후 <span className="font-black text-[var(--text-secondary)]">&nbsp;{trendPrediction}kg</span>&nbsp;예상
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-0.5 sm:mb-1">나의 건강 대시보드</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 기록 분석</h1>
+            <p className="text-sm text-[var(--text-muted)] mt-1 sm:mt-1.5">체중, 체성분, 기록 흐름을 한눈에 확인하세요.</p>
+
+            {/* Stat chips — 모바일: 가로 스크롤, PC: 줄바꿈 */}
+            <div className="flex items-center gap-2 mt-3 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap sm:mt-3">
+              {latest?.weight ? (
+                <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-soft)] text-[12px] font-black text-[var(--accent)]">
+                  <Scale className="w-3 h-3" />
+                  {latest.weight} kg
+                </span>
+              ) : null}
+              {delta !== null && (
+                <span className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[12px] font-black ${delta < 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : delta > 0 ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'}`}>
+                  {delta < 0 ? <TrendingDown className="w-3 h-3" /> : delta > 0 ? <TrendingUp className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                  {delta > 0 ? '+' : ''}{delta} kg
+                </span>
+              )}
+              {goalGap !== null && (
+                <span className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[12px] font-black ${goalGap <= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-violet-50 border-violet-200 text-violet-600'}`}>
+                  <Target className="w-3 h-3" />
+                  {goalGap <= 0 ? '목표 달성! 🎉' : `목표까지 -${goalGap} kg`}
+                </span>
+              )}
+              <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[12px] font-bold text-[var(--text-muted)]">
+                <CalendarDays className="w-3 h-3" />
+                {records.length}일 기록
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsRecordModalOpen(true)}
+            className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white px-5 py-3 rounded-2xl text-sm font-black hover:opacity-90 transition-all shadow-lg shadow-cyan-200 self-start sm:self-auto shrink-0 active:scale-95 cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />오늘 기록하기
+          </button>
+        </header>
+
+        {/* ── Body signal section ── */}
+        <BodySignalSection records={records} />
+
+        {/* ── Filter bar ── */}
+        <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-0.5 sm:p-1 rounded-2xl border border-[var(--border)] shadow-sm w-full sm:w-fit sm:overflow-x-auto sm:scrollbar-hide" role="group" aria-label="기간 필터">
+          {(Object.keys(FILTER_LABELS) as (keyof typeof FILTER_LABELS)[]).map((f) => (
+            <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
+              className={`flex-1 sm:flex-none min-h-[40px] sm:min-h-0 px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer text-center flex items-center justify-center ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
+              {FILTER_LABELS[f]}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Summary cards ── */}
+        <SummaryCards filteredRecords={filteredRecords} onCardClick={toggleMetric} selectedMetrics={selectedMetrics} />
+
+        {/* ── Main chart ── */}
+        <section aria-label="지표별 변화 추이" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-hidden">
+          <div className="p-6 pb-0 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
+                <TrendingUp className="w-3.5 h-3.5" />멀티 트래킹 분석
               </p>
+              <h2 className="text-lg font-black text-[var(--text-primary)]">지표별 변화 추이</h2>
+              {trendPrediction && selectedMetrics.includes('weight') && (
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5 flex items-center gap-1">
+                  <Flame className="w-3 h-3 text-orange-400" />
+                  현재 추세 기준 4주 후 <span className="font-black text-[var(--text-secondary)]">&nbsp;{trendPrediction}kg</span>&nbsp;예상
+                </p>
+              )}
+            </div>
+            {selectedMetrics.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {selectedMetrics.map(m => (
+                  <div key={m} className="px-3 py-1 rounded-full border border-[var(--border)] flex items-center gap-1.5 bg-[var(--surface-2)]">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: METRIC_LABELS[m].color }} />
+                    <span className="text-[11px] font-bold text-[var(--text-secondary)]">{METRIC_LABELS[m].label}</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-          {selectedMetrics.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {selectedMetrics.map(m => (
-                <div key={m} className="px-3 py-1 rounded-full border border-[var(--border)] flex items-center gap-1.5 bg-[var(--surface-2)]">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: METRIC_LABELS[m].color }} />
-                  <span className="text-[11px] font-bold text-[var(--text-secondary)]">{METRIC_LABELS[m].label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        <div className="h-[380px] w-full px-2 py-4" role="img" aria-label={`${selectedMetrics.map(m => METRIC_LABELS[m].label).join('·')} 시계열 차트`}>
-          {filteredRecords.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 12, right: 16, left: -20, bottom: 0 }}>
-                <defs>
+          <div className="h-[380px] w-full px-2 py-4" role="img" aria-label={`${selectedMetrics.map(m => METRIC_LABELS[m].label).join('·')} 시계열 차트`}>
+            {filteredRecords.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 12, right: 16, left: -20, bottom: 0 }}>
+                  <defs>
+                    {selectedMetrics.map(m => (
+                      <linearGradient key={m} id={`grad-${m}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={METRIC_LABELS[m].color} stopOpacity={0.35} />
+                        <stop offset="50%" stopColor={METRIC_LABELS[m].color} stopOpacity={0.12} />
+                        <stop offset="100%" stopColor={METRIC_LABELS[m].color} stopOpacity={0} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e0f2fe" strokeOpacity={0.8} />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }}
+                    dy={8}
+                    interval={Math.ceil(chartData.length / 7)}
+                  />
+                  <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
+                  <Tooltip content={<CustomTooltip />} />
+                  {/* Goal weight reference line */}
+                  {target && selectedMetrics.includes('weight') && (
+                    <ReferenceLine
+                      y={target}
+                      stroke="#7c3aed"
+                      strokeDasharray="6 3"
+                      strokeWidth={1.5}
+                      label={{ value: `목표 ${target}kg`, position: 'insideTopRight', fontSize: 10, fill: '#7c3aed', fontWeight: 700 }}
+                    />
+                  )}
                   {selectedMetrics.map(m => (
-                    <linearGradient key={m} id={`grad-${m}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%"   stopColor={METRIC_LABELS[m].color} stopOpacity={0.35} />
-                      <stop offset="50%"  stopColor={METRIC_LABELS[m].color} stopOpacity={0.12} />
-                      <stop offset="100%" stopColor={METRIC_LABELS[m].color} stopOpacity={0}    />
-                    </linearGradient>
+                    <Area
+                      key={m}
+                      type="monotone"
+                      dataKey={m}
+                      stroke={METRIC_LABELS[m].color}
+                      strokeWidth={2.5}
+                      fill={`url(#grad-${m})`}
+                      dot={false}
+                      activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff', fill: METRIC_LABELS[m].color }}
+                      animationDuration={700}
+                      connectNulls={false}
+                    />
                   ))}
-                </defs>
-                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e0f2fe" strokeOpacity={0.8} />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }}
-                  dy={8}
-                  interval={Math.ceil(chartData.length / 7)}
-                />
-                <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
-                <Tooltip content={<CustomTooltip />} />
-                {/* Goal weight reference line */}
-                {target && selectedMetrics.includes('weight') && (
-                  <ReferenceLine
-                    y={target}
-                    stroke="#7c3aed"
-                    strokeDasharray="6 3"
-                    strokeWidth={1.5}
-                    label={{ value: `목표 ${target}kg`, position: 'insideTopRight', fontSize: 10, fill: '#7c3aed', fontWeight: 700 }}
-                  />
-                )}
-                {selectedMetrics.map(m => (
-                  <Area
-                    key={m}
-                    type="monotone"
-                    dataKey={m}
-                    stroke={METRIC_LABELS[m].color}
-                    strokeWidth={2.5}
-                    fill={`url(#grad-${m})`}
-                    dot={false}
-                    activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff', fill: METRIC_LABELS[m].color }}
-                    animationDuration={700}
-                    connectNulls={false}
-                  />
-                ))}
-                {/* Trend line */}
-                {selectedMetrics.includes('weight') && trendPrediction && (
-                  <Line
-                    type="monotone"
-                    dataKey="trendWeight"
-                    stroke="#0891b2"
-                    strokeWidth={1.5}
-                    strokeDasharray="6 4"
-                    strokeOpacity={0.5}
-                    dot={false}
-                    activeDot={false}
-                    animationDuration={700}
-                    connectNulls
-                  />
-                )}
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] gap-4 border-2 border-dashed border-[var(--border)] rounded-2xl mx-4 p-8">
-              <History className="w-10 h-10 opacity-20" />
-              <div className="text-center space-y-1">
-                <p className="text-sm font-bold text-[var(--text-secondary)]">선택한 기간에 데이터가 없습니다.</p>
-                <p className="text-xs text-[var(--text-muted)]">기간 필터를 변경하거나 새 기록을 추가해보세요.</p>
-              </div>
-              <button onClick={() => setIsRecordModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[var(--accent)] to-cyan-500 hover:opacity-90 text-white rounded-xl text-xs font-black shadow-md shadow-cyan-200 transition-all active:scale-95 cursor-pointer">
-                <PlusCircle className="w-4 h-4" />기록 추가하기
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Weekly report + Composition row ── */}
-      {(weeklyReport || compositionData) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* Weekly composition report */}
-          {weeklyReport && (
-            <section aria-label="주간 체성분 리포트" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
-
-              {/* 헤더: 제목 + 주차 < 드롭다운 > */}
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
-                    <CalendarDays className="w-3.5 h-3.5" />주간 리포트
-                  </p>
-                  <h2 className="text-base font-black text-[var(--text-primary)]">주간 체성분 요약</h2>
+                  {/* Trend line */}
+                  {selectedMetrics.includes('weight') && trendPrediction && (
+                    <Line
+                      type="monotone"
+                      dataKey="trendWeight"
+                      stroke="#0891b2"
+                      strokeWidth={1.5}
+                      strokeDasharray="6 4"
+                      strokeOpacity={0.5}
+                      dot={false}
+                      activeDot={false}
+                      animationDuration={700}
+                      connectNulls
+                    />
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] gap-4 border-2 border-dashed border-[var(--border)] rounded-2xl mx-4 p-8">
+                <History className="w-10 h-10 opacity-20" />
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-bold text-[var(--text-secondary)]">선택한 기간에 데이터가 없습니다.</p>
+                  <p className="text-xs text-[var(--text-muted)]">기간 필터를 변경하거나 새 기록을 추가해보세요.</p>
                 </div>
-                {weekOptions.length > 0 && (
-                  <div className="flex items-center gap-1 shrink-0 mt-0.5">
-                    <button
-                      onClick={goPrevWeek}
-                      disabled={!canGoPrev}
-                      className="p-1 rounded-full hover:bg-[var(--surface-2)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                      aria-label="이전 주"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                    </button>
-                    <div className="relative">
-                      <select
-                        value={selectedWeekOffset}
-                        onChange={e => setSelectedWeekOffset(Number(e.target.value))}
-                        className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border)] rounded-full pl-3 pr-6 py-1.5 cursor-pointer outline-none appearance-none max-w-[110px]"
-                        aria-label="조회할 주차 선택"
+                <button onClick={() => setIsRecordModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[var(--accent)] to-cyan-500 hover:opacity-90 text-white rounded-xl text-xs font-black shadow-md shadow-cyan-200 transition-all active:scale-95 cursor-pointer">
+                  <PlusCircle className="w-4 h-4" />기록 추가하기
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ── Weekly report + Composition row ── */}
+        {(weeklyReport || compositionData) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Weekly composition report */}
+            {weeklyReport && (
+              <section aria-label="주간 체성분 리포트" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
+
+                {/* 헤더: 제목 + 주차 < 드롭다운 > */}
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
+                      <CalendarDays className="w-3.5 h-3.5" />주간 리포트
+                    </p>
+                    <h2 className="text-base font-black text-[var(--text-primary)]">주간 체성분</h2>
+                  </div>
+                  {weekOptions.length > 0 && (
+                    <div className="flex items-center gap-1 shrink-0 mt-0.5">
+                      <button
+                        onClick={goPrevWeek}
+                        disabled={!canGoPrev}
+                        className="p-1 rounded-full hover:bg-[var(--surface-2)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        aria-label="이전 주"
                       >
-                        {weekOptions.map(opt => (
-                          <option key={opt.offset} value={opt.offset}>{opt.label}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
-                    </div>
-                    <button
-                      onClick={goNextWeek}
-                      disabled={!canGoNext}
-                      className="p-1 rounded-full hover:bg-[var(--surface-2)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                      aria-label="다음 주"
-                    >
-                      <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* 한 줄 요약 코멘트 — 상태 뱃지 + 컬러 박스 */}
-              {weeklySummaryComment && weeklyReport.days > 0 && (() => {
-                const s = WEEKLY_STATUS_STYLES[weeklySummaryComment.status];
-                return (
-                  <div className={`flex items-start gap-2 rounded-xl px-3 py-2 mb-3 border ${s.bg} ${s.border}`}>
-                    <span className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full mt-0.5 whitespace-nowrap ${s.badge} ${s.badgeText}`}>
-                      {s.label}
-                    </span>
-                    <p className="text-[12px] leading-relaxed text-[var(--text-secondary)]">
-                      {weeklySummaryComment.message}
-                    </p>
-                  </div>
-                );
-              })()}
-
-              {/* 빈 상태 or 데이터 */}
-              {weeklyReport.days === 0 ? (
-                <div className="flex flex-col items-center justify-center py-5 text-center gap-2 bg-[var(--surface-2)] rounded-2xl">
-                  <CalendarDays className="w-6 h-6 text-[var(--text-muted)] opacity-30" />
-                  <p className="text-[12px] text-[var(--text-muted)] leading-relaxed max-w-[220px]">
-                    선택한 주차에는 기록이 없어요.<br />기록이 있는 주차를 선택해 주세요.
-                  </p>
-                </div>
-              ) : (
-                /* 5개 체성분 지표 + 기록한 날 = 6 미니 카드 (모바일 2열 / PC 3열) */
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {weeklyReport.metrics.map(m => (
-                    <div key={m.key} className="bg-[var(--surface-2)] rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0 sm:hover:shadow-sm sm:hover:-translate-y-0.5 sm:transition-all sm:duration-200">
-                      <p className="text-[10px] font-bold text-[var(--text-muted)] truncate">{m.label}</p>
-                      <p className="text-[16px] sm:text-[17px] font-black text-[var(--text-primary)] leading-none">
-                        {m.avg != null ? m.avg : '—'}
-                        <span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">{m.unit}</span>
-                      </p>
-                      {/* 전주 대비: 아이콘 + 짧은 변화량 + 지표별 좋은방향 컬러 */}
-                      <div className={`flex items-center gap-0.5 text-[10px] font-bold leading-none ${getDeltaColorClass(m.delta, m.isPositiveGood)}`}>
-                        {getDeltaDirection(m.delta) === 'up'   && <TrendingUp   className="w-3 h-3 shrink-0" />}
-                        {getDeltaDirection(m.delta) === 'down' && <TrendingDown className="w-3 h-3 shrink-0" />}
-                        {getDeltaDirection(m.delta) === 'none' && <Minus        className="w-3 h-3 shrink-0" />}
-                        <span>{formatDeltaShort(m.delta, m.unit)}</span>
+                        <ChevronLeft className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                      </button>
+                      <div className="relative">
+                        <select
+                          value={selectedWeekOffset}
+                          onChange={e => setSelectedWeekOffset(Number(e.target.value))}
+                          className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border)] rounded-full pl-3 pr-6 py-1.5 cursor-pointer outline-none appearance-none max-w-[110px]"
+                          aria-label="조회할 주차 선택"
+                        >
+                          {weekOptions.map(opt => (
+                            <option key={opt.offset} value={opt.offset}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
                       </div>
+                      <button
+                        onClick={goNextWeek}
+                        disabled={!canGoNext}
+                        className="p-1 rounded-full hover:bg-[var(--surface-2)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        aria-label="다음 주"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                      </button>
                     </div>
-                  ))}
-                  {/* 기록한 날 — 중립 컬러 */}
-                  <div className="bg-violet-50 rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0">
-                    <p className="text-[10px] font-bold text-violet-400">기록한 날</p>
-                    <p className="text-[16px] sm:text-[17px] font-black text-violet-600 leading-none">
-                      {weeklyReport.days}
-                      <span className="text-[10px] font-bold text-violet-400 ml-0.5">일</span>
-                    </p>
-                    <p className="text-[10px] font-bold text-[var(--text-muted)]">이번 주 기록</p>
-                  </div>
+                  )}
                 </div>
-              )}
-            </section>
-          )}
 
-          {/* Body composition donut */}
-          {compositionData && (
-            <section aria-label="체성분 분석" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
-                <Dumbbell className="w-3.5 h-3.5" />체성분 분석
-              </p>
-              
-              {/* Header with responsive layout for Title and BMI */}
-              <div className="flex items-center justify-between mb-5 gap-2">
-                <div>
-                  <h2 className="text-base font-black text-[var(--text-primary)] leading-tight">현재 체성분 비율</h2>
-                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">기준일: {compositionData.date}</p>
-                </div>
-                {compositionData.bmi && (
-                  <div className="text-right shrink-0">
-                    <p className="text-[10px] font-bold text-[var(--text-muted)]">나의 체질량 지수</p>
-                    <div className="flex items-center gap-1.5 justify-end mt-0.5">
-                      <span className="text-[17px] font-black text-[var(--text-primary)] tracking-tight">BMI {compositionData.bmi}</span>
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border ${
-                        compositionData.bmi < 18.5 ? 'text-cyan-600 bg-cyan-50 border-cyan-100' :
-                        compositionData.bmi < 23 ? 'text-emerald-600 bg-emerald-50 border-emerald-100' :
-                        compositionData.bmi < 25 ? 'text-amber-600 bg-amber-50 border-amber-100' :
-                        'text-rose-600 bg-rose-50 border-rose-100'
-                      }`}>
-                        {compositionData.bmi < 18.5 ? '저체중' : compositionData.bmi < 23 ? '정상' : compositionData.bmi < 25 ? '과체중' : '비만'}
+                {/* 한 줄 요약 코멘트 — 상태 뱃지 + 컬러 박스 */}
+                {weeklySummaryComment && weeklyReport.days > 0 && (() => {
+                  const s = WEEKLY_STATUS_STYLES[weeklySummaryComment.status];
+                  return (
+                    <div className={`flex items-start gap-2 rounded-xl px-3 py-2 mb-3 border ${s.bg} ${s.border}`}>
+                      <span className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full mt-0.5 whitespace-nowrap ${s.badge} ${s.badgeText}`}>
+                        {s.label}
                       </span>
+                      <p className="text-[12px] leading-relaxed text-[var(--text-secondary)]">
+                        {weeklySummaryComment.message}
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {/* 빈 상태 or 데이터 */}
+                {weeklyReport.days === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-5 text-center gap-2 bg-[var(--surface-2)] rounded-2xl">
+                    <CalendarDays className="w-6 h-6 text-[var(--text-muted)] opacity-30" />
+                    <p className="text-[12px] text-[var(--text-muted)] leading-relaxed max-w-[220px]">
+                      선택한 주차에는 기록이 없어요.<br />기록이 있는 주차를 선택해 주세요.
+                    </p>
+                  </div>
+                ) : (
+                  /* 5개 체성분 지표 + 기록한 날 = 6 미니 카드 (모바일 2열 / PC 3열) */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {weeklyReport.metrics.map(m => (
+                      <div key={m.key} className="bg-[var(--surface-2)] rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0 sm:hover:shadow-sm sm:hover:-translate-y-0.5 sm:transition-all sm:duration-200">
+                        <p className="text-[10px] font-bold text-[var(--text-muted)] truncate">{m.label}</p>
+                        <p className="text-[16px] sm:text-[17px] font-black text-[var(--text-primary)] leading-none">
+                          {m.avg != null ? m.avg : '—'}
+                          <span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">{m.unit}</span>
+                        </p>
+                        {/* 전주 대비: 아이콘 + 짧은 변화량 + 지표별 좋은방향 컬러 */}
+                        <div className={`flex items-center gap-0.5 text-[10px] font-bold leading-none ${getDeltaColorClass(m.delta, m.isPositiveGood)}`}>
+                          {getDeltaDirection(m.delta) === 'up' && <TrendingUp className="w-3 h-3 shrink-0" />}
+                          {getDeltaDirection(m.delta) === 'down' && <TrendingDown className="w-3 h-3 shrink-0" />}
+                          {getDeltaDirection(m.delta) === 'none' && <Minus className="w-3 h-3 shrink-0" />}
+                          <span>{formatDeltaShort(m.delta, m.unit)}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {/* 기록한 날 — 중립 컬러 */}
+                    <div className="bg-violet-50 rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0">
+                      <p className="text-[10px] font-bold text-violet-400">기록한 날</p>
+                      <p className="text-[16px] sm:text-[17px] font-black text-violet-600 leading-none">
+                        {weeklyReport.days}
+                        <span className="text-[10px] font-bold text-violet-400 ml-0.5">일</span>
+                      </p>
+                      <p className="text-[10px] font-bold text-[var(--text-muted)]">이번 주 기록</p>
                     </div>
                   </div>
                 )}
-              </div>
+              </section>
+            )}
 
-              <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-                {/* Donut */}
-                <div className="relative shrink-0" style={{ width: 140, height: 140 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={compositionData.items}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={44}
-                        outerRadius={65}
-                        dataKey="value"
-                        startAngle={90}
-                        endAngle={-270}
-                        strokeWidth={2}
-                        stroke="#fff"
-                      >
-                        {compositionData.items.map((entry, idx) => (
-                          <Cell key={idx} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  {/* Center label showing Weight and BMI status indicator */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <p className="text-[17px] font-black text-[var(--text-primary)] leading-none">{compositionData.weight}<span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">kg</span></p>
+            {/* Body composition donut */}
+            {compositionData && (
+              <section aria-label="체성분 분석" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
+                  <Dumbbell className="w-3.5 h-3.5" />체성분 분석
+                </p>
+
+                {/* Header with responsive layout for Title and BMI */}
+                <div className="flex items-center justify-between mb-5 gap-2">
+                  <div>
+                    <h2 className="text-base font-black text-[var(--text-primary)] leading-tight">현재 체성분 비율</h2>
+                    <p className="text-[11px] text-[var(--text-muted)] mt-0.5">기준일: {compositionData.date}</p>
                   </div>
-                </div>
-
-                {/* Responsive Legend */}
-                <div className="flex-1 grid grid-cols-3 sm:flex sm:flex-col gap-2 sm:gap-2.5 w-full">
-                  {compositionData.items.map(item => (
-                    <div key={item.name} className="flex flex-col items-center sm:flex-row sm:justify-between p-2 sm:p-0 bg-[var(--surface-2)] sm:bg-transparent rounded-xl text-center sm:text-left border border-[var(--border-subtle)] sm:border-0">
-                      <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
-                        <div className="w-2 h-2 rounded-full shrink-0 mb-0.5 sm:mb-0" style={{ backgroundColor: item.color }} />
-                        <span className="text-[12px] sm:text-[13px] font-black text-[var(--text-secondary)] whitespace-nowrap truncate">{item.name}</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end sm:mt-0 mt-0.5">
-                        <span className="text-[12px] sm:text-[13px] font-black text-[var(--text-primary)] whitespace-nowrap">
-                          {item.value.toFixed(1)}kg
-                        </span>
-                        <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-muted)] whitespace-nowrap sm:ml-1.5">
-                          ({item.pct}%)
+                  {compositionData.bmi && (
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] font-bold text-[var(--text-muted)]">나의 체질량 지수</p>
+                      <div className="flex items-center gap-1.5 justify-end mt-0.5">
+                        <span className="text-[17px] font-black text-[var(--text-primary)] tracking-tight">BMI {compositionData.bmi}</span>
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border ${compositionData.bmi < 18.5 ? 'text-cyan-600 bg-cyan-50 border-cyan-100' :
+                            compositionData.bmi < 23 ? 'text-emerald-600 bg-emerald-50 border-emerald-100' :
+                              compositionData.bmi < 25 ? 'text-amber-600 bg-amber-50 border-amber-100' :
+                                'text-rose-600 bg-rose-50 border-rose-100'
+                          }`}>
+                          {compositionData.bmi < 18.5 ? '저체중' : compositionData.bmi < 23 ? '정상' : compositionData.bmi < 25 ? '과체중' : '비만'}
                         </span>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-            </section>
-          )}
-        </div>
-      )}
+
+                <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                  {/* Donut */}
+                  <div className="relative shrink-0" style={{ width: 140, height: 140 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={compositionData.items}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={44}
+                          outerRadius={65}
+                          dataKey="value"
+                          startAngle={90}
+                          endAngle={-270}
+                          strokeWidth={2}
+                          stroke="#fff"
+                        >
+                          {compositionData.items.map((entry, idx) => (
+                            <Cell key={idx} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    {/* Center label showing Weight and BMI status indicator */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <p className="text-[17px] font-black text-[var(--text-primary)] leading-none">{compositionData.weight}<span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">kg</span></p>
+                    </div>
+                  </div>
+
+                  {/* Responsive Legend */}
+                  <div className="flex-1 grid grid-cols-3 sm:flex sm:flex-col gap-2 sm:gap-2.5 w-full">
+                    {compositionData.items.map(item => (
+                      <div key={item.name} className="flex flex-col items-center sm:flex-row sm:justify-between p-2 sm:p-0 bg-[var(--surface-2)] sm:bg-transparent rounded-xl text-center sm:text-left border border-[var(--border-subtle)] sm:border-0">
+                        <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                          <div className="w-2 h-2 rounded-full shrink-0 mb-0.5 sm:mb-0" style={{ backgroundColor: item.color }} />
+                          <span className="text-[12px] sm:text-[13px] font-black text-[var(--text-secondary)] whitespace-nowrap truncate">{item.name}</span>
+                        </div>
+                        <div className="flex flex-col items-center sm:items-end sm:mt-0 mt-0.5">
+                          <span className="text-[12px] sm:text-[13px] font-black text-[var(--text-primary)] whitespace-nowrap">
+                            {item.value.toFixed(1)}kg
+                          </span>
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-muted)] whitespace-nowrap sm:ml-1.5">
+                            ({item.pct}%)
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+          </div>
+        )}
 
       </div>
 
