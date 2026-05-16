@@ -86,8 +86,8 @@ export default function CalendarPage() {
             날짜별 기록
           </p>
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 캘린더</h1>
-          <div className="flex flex-wrap items-center gap-2 mt-1 sm:mt-2">
-            <p className="text-sm text-[var(--text-muted)]">날짜를 클릭해 기록을 추가하거나 수정하세요</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1 sm:mt-1.5">날짜를 클릭해 기록을 추가하거나 수정하세요.</p>
+          <div className="flex flex-wrap items-center gap-2 mt-1.5 sm:mt-2">
             {streak > 0 && (
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-black ${
                 streak >= 7

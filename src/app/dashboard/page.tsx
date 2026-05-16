@@ -353,13 +353,14 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
       {/* ── Header ── */}
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-10">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-4 sm:mb-10">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-0.5 sm:mb-1">나의 건강 대시보드</p>
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 기록 분석</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-1 sm:mt-1.5">체중, 체성분, 기록 흐름을 한눈에 확인하세요.</p>
 
           {/* Stat chips — 모바일: 가로 스크롤, PC: 줄바꿈 */}
-          <div className="flex items-center gap-2 mt-1 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap sm:mt-1.5">
+          <div className="flex items-center gap-2 mt-1.5 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap sm:mt-2">
             {latest?.weight ? (
               <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-soft)] text-[12px] font-black text-[var(--accent)]">
                 <Scale className="w-3 h-3" />

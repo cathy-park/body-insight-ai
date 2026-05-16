@@ -164,10 +164,10 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
-      <header className="mb-10">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">설정</p>
+      <header className="mb-4 sm:mb-10">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-0.5 sm:mb-1">설정</p>
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">개인 설정</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">신체 정보, 알림, 데이터 관리를 설정하세요.</p>
+        <p className="text-sm text-[var(--text-muted)] mt-1 sm:mt-1.5">신체 정보, 알림, 데이터 관리를 설정하세요.</p>
       </header>
 
       {/* 신체 정보 */}

@@ -172,10 +172,10 @@ export default function WarehousePage() {
     <>
       <div className="max-w-5xl mx-auto pt-[100px] px-5 sm:px-10 pb-20 md:pb-10 space-y-6 animate-fade-up">
 
-      <header className="mb-10">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-1">자료 관리</p>
+      <header className="mb-4 sm:mb-10">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] mb-0.5 sm:mb-1">자료 관리</p>
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">건강 자료실</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">건강검진 기록 및 보험 서류를 통합 관리하세요.</p>
+        <p className="text-sm text-[var(--text-muted)] mt-1 sm:mt-1.5">건강검진 기록 및 보험 서류를 통합 관리하세요.</p>
       </header>
 
       {/* 1. Copy Center */}
