@@ -1,4 +1,5 @@
 import { HealthRecord } from '@/types';
+import { type SignalStatus } from '@/lib/bodySignals';
 
 export type WeeklyMetricDef = {
   key: 'weight' | 'skeletal_muscle' | 'body_fat' | 'body_fat_mass' | 'visceral_fat_level';
@@ -113,30 +114,66 @@ export function getDeltaDirection(
 
 // ── 주간 한 줄 코멘트 ─────────────────────────────────────────────────
 // 바디인사이트AI 톤: 친근하고 부드러운 건강 기록 코치. 평가·진단 금지.
-// 이 객체에서 모든 UX라이팅 문구를 관리합니다.
+// 문구 수정은 이 객체에서만 합니다.
 
-const WEEKLY_COMMENT_COPY = {
-  lowData:      '기록한 날이 적어 이번 주 흐름은 참고용으로만 봐주세요 📝',
-  noPrevData:   '전주 기록이 없어 이번 주 평균만 확인할 수 있어요.',
-  muscleUpFatDown:   '근육량은 늘고 체지방률은 내려간 좋은 흐름이에요 💪',
-  weightUpFatUp:     '체중과 체지방률이 함께 올라 이번 주는 지방 분포를 살펴봐주세요 🔍',
-  weightDownMuscleDown: '체중은 줄었지만 근육량도 함께 줄어 감량 속도를 점검해보세요 🧭',
-  fatMassAndVisceralDown: '지방 관련 지표가 함께 내려간 긍정적인 흐름이에요 ✨',
-  muscleDownFatUp: '근육량은 줄고 체지방률은 오른 흐름이에요. 근육 유지도 함께 챙겨보세요 💪',
-  stable:       '전주와 큰 변화 없이 안정적인 흐름이에요 🌿',
-  default:      '이번 주 체성분 흐름을 살펴봤어요. 지표 변화를 함께 확인해보세요.',
-} as const;
+const WEEKLY_COMMENT_COPY: Record<string, { status: SignalStatus; message: string }> = {
+  criticalMuscleDown: {
+    status: 'critical',
+    message: '체중과 근육량이 함께 빠진 흐름이에요. 단백질 섭취와 운동 루틴을 함께 챙겨보세요 🧭',
+  },
+  muscleUpFatDown: {
+    status: 'good',
+    message: '근육량은 늘고 체지방률은 내려간 좋은 흐름이에요 💪',
+  },
+  fatMassAndVisceralDown: {
+    status: 'good',
+    message: '지방 관련 지표가 함께 내려간 긍정적인 흐름이에요 ✨',
+  },
+  muscleDownFatUp: {
+    status: 'warning',
+    message: '근육량은 줄고 체지방률은 오른 흐름이에요. 근육 유지도 함께 챙겨보세요 💪',
+  },
+  weightUpFatUp: {
+    status: 'warning',
+    message: '체중과 체지방률이 함께 올라 이번 주는 지방 분포를 살펴봐주세요 🔍',
+  },
+  weightDownMuscleDown: {
+    status: 'warning',
+    message: '체중은 줄었지만 근육량도 함께 줄어 감량 속도를 점검해보세요 🧭',
+  },
+  lowData: {
+    status: 'normal',
+    message: '기록한 날이 적어 이번 주 흐름은 참고용으로만 봐주세요 📝',
+  },
+  noPrevData: {
+    status: 'normal',
+    message: '전주 기록이 없어 이번 주 평균만 확인할 수 있어요.',
+  },
+  stable: {
+    status: 'normal',
+    message: '전주와 큰 변화 없이 안정적인 흐름이에요 🌿',
+  },
+  default: {
+    status: 'normal',
+    message: '이번 주 체성분 흐름을 살펴봤어요. 지표 변화를 함께 확인해보세요.',
+  },
+};
+
+/** generateWeeklySummaryComment 반환 타입 */
+export type WeeklySummaryResult = {
+  status: SignalStatus;
+  message: string;
+};
 
 /**
- * 주간 체성분 리포트를 받아 규칙 기반으로 한 줄 코멘트를 반환합니다.
- * 우선순위: 데이터 부족 → 비교 불가 → 패턴 매칭 → 안정 → 기본
+ * 오늘의 바디 신호와 동일한 4단계 상태(good/normal/warning/critical) +
+ * 한 줄 코멘트를 반환합니다.
+ * 우선순위: 집중관리 → 좋음 → 주의 → 보통(기타)
  */
 export function generateWeeklySummaryComment(
   report: WeeklyCompositionReport,
-): string {
+): WeeklySummaryResult {
   const { metrics, days } = report;
-
-  if (days <= 2) return WEEKLY_COMMENT_COPY.lowData;
 
   const get = (key: string) => metrics.find(m => m.key === key)?.delta ?? null;
   const muscleDelta   = get('skeletal_muscle');
@@ -145,26 +182,33 @@ export function generateWeeklySummaryComment(
   const fatMassDelta  = get('body_fat_mass');
   const visceralDelta = get('visceral_fat_level');
 
-  const hasAnyComparison = metrics.some(m => m.delta !== null);
-  if (!hasAnyComparison) return WEEKLY_COMMENT_COPY.noPrevData;
+  if (days <= 2) return WEEKLY_COMMENT_COPY.lowData;
 
-  // 패턴 매칭 (우선순위 순)
+  const hasComparison = metrics.some(m => m.delta !== null);
+  if (!hasComparison) return WEEKLY_COMMENT_COPY.noPrevData;
+
+  // 집중관리: 체중↓ + (골격근 0.5kg 초과 감소 OR 골격근↓ AND 체지방률↑)
+  if (
+    weightDelta !== null && weightDelta < 0 &&
+    muscleDelta !== null && muscleDelta < 0 &&
+    (muscleDelta < -0.5 || (fatRateDelta !== null && fatRateDelta > 0))
+  ) return WEEKLY_COMMENT_COPY.criticalMuscleDown;
+
+  // 좋음
   if (muscleDelta !== null && fatRateDelta !== null && muscleDelta > 0 && fatRateDelta < 0)
     return WEEKLY_COMMENT_COPY.muscleUpFatDown;
-
-  if (muscleDelta !== null && fatRateDelta !== null && muscleDelta < 0 && fatRateDelta > 0)
-    return WEEKLY_COMMENT_COPY.muscleDownFatUp;
-
-  if (weightDelta !== null && fatRateDelta !== null && weightDelta > 0 && fatRateDelta > 0)
-    return WEEKLY_COMMENT_COPY.weightUpFatUp;
-
-  if (weightDelta !== null && muscleDelta !== null && weightDelta < 0 && muscleDelta < 0)
-    return WEEKLY_COMMENT_COPY.weightDownMuscleDown;
-
   if (fatMassDelta !== null && visceralDelta !== null && fatMassDelta < 0 && visceralDelta < 0)
     return WEEKLY_COMMENT_COPY.fatMassAndVisceralDown;
 
-  // 유의미한 변화 여부 판단
+  // 주의
+  if (muscleDelta !== null && fatRateDelta !== null && muscleDelta < 0 && fatRateDelta > 0)
+    return WEEKLY_COMMENT_COPY.muscleDownFatUp;
+  if (weightDelta !== null && fatRateDelta !== null && weightDelta > 0 && fatRateDelta > 0)
+    return WEEKLY_COMMENT_COPY.weightUpFatUp;
+  if (weightDelta !== null && muscleDelta !== null && weightDelta < 0 && muscleDelta < 0)
+    return WEEKLY_COMMENT_COPY.weightDownMuscleDown;
+
+  // 안정 (보통)
   const THRESHOLDS: Record<string, number> = {
     weight: 0.3, skeletal_muscle: 0.2, body_fat: 0.2,
     body_fat_mass: 0.2, visceral_fat_level: 1,
@@ -172,8 +216,29 @@ export function generateWeeklySummaryComment(
   const hasSignificant = metrics
     .filter(m => m.delta !== null)
     .some(m => Math.abs(m.delta as number) >= (THRESHOLDS[m.key] ?? 0.3));
-
   if (!hasSignificant) return WEEKLY_COMMENT_COPY.stable;
 
   return WEEKLY_COMMENT_COPY.default;
 }
+
+/** 오늘의 바디 신호와 동일한 4단계 상태 스타일 (주간 코멘트 배너용) */
+export const WEEKLY_STATUS_STYLES: Record<SignalStatus, {
+  bg: string; border: string; badge: string; badgeText: string; label: string;
+}> = {
+  good: {
+    bg: 'bg-emerald-50', border: 'border-emerald-100',
+    badge: 'bg-emerald-100', badgeText: 'text-emerald-700', label: '좋음',
+  },
+  normal: {
+    bg: 'bg-sky-50', border: 'border-sky-100',
+    badge: 'bg-sky-100', badgeText: 'text-sky-700', label: '보통',
+  },
+  warning: {
+    bg: 'bg-amber-50', border: 'border-orange-100',
+    badge: 'bg-orange-100', badgeText: 'text-orange-700', label: '주의',
+  },
+  critical: {
+    bg: 'bg-rose-50', border: 'border-rose-100',
+    badge: 'bg-rose-100', badgeText: 'text-rose-700', label: '집중관리',
+  },
+};

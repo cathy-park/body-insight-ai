@@ -22,6 +22,7 @@ import {
   getDeltaDirection,
   formatDeltaShort,
   generateWeeklySummaryComment,
+  WEEKLY_STATUS_STYLES,
   type WeeklyCompositionReport,
 } from '@/lib/weeklyReport';
 
@@ -579,12 +580,20 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* 한 줄 요약 코멘트 */}
-              {weeklySummaryComment && weeklyReport.days > 0 && (
-                <p className="text-[12px] leading-relaxed text-[var(--text-secondary)] bg-[var(--surface-2)] rounded-xl px-3 py-2 mb-3">
-                  {weeklySummaryComment}
-                </p>
-              )}
+              {/* 한 줄 요약 코멘트 — 상태 뱃지 + 컬러 박스 */}
+              {weeklySummaryComment && weeklyReport.days > 0 && (() => {
+                const s = WEEKLY_STATUS_STYLES[weeklySummaryComment.status];
+                return (
+                  <div className={`flex items-start gap-2 rounded-xl px-3 py-2 mb-3 border ${s.bg} ${s.border}`}>
+                    <span className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full mt-0.5 whitespace-nowrap ${s.badge} ${s.badgeText}`}>
+                      {s.label}
+                    </span>
+                    <p className="text-[12px] leading-relaxed text-[var(--text-secondary)]">
+                      {weeklySummaryComment.message}
+                    </p>
+                  </div>
+                );
+              })()}
 
               {/* 빈 상태 or 데이터 */}
               {weeklyReport.days === 0 ? (
