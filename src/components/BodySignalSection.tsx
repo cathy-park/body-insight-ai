@@ -20,7 +20,7 @@ const STATUS_STYLES: Record<SignalStatus, {
 }> = {
   good: {
     card:      'bg-gradient-to-br from-emerald-50 to-teal-50',
-    border:    'border-emerald-150',
+    border:    'border-emerald-200',
     badge:     'bg-emerald-100',
     badgeText: 'text-emerald-700',
     dot:       'bg-emerald-400',
@@ -28,7 +28,7 @@ const STATUS_STYLES: Record<SignalStatus, {
   },
   normal: {
     card:      'bg-gradient-to-br from-sky-50 to-slate-50',
-    border:    'border-sky-100',
+    border:    'border-sky-200',
     badge:     'bg-sky-100',
     badgeText: 'text-sky-700',
     dot:       'bg-sky-400',
