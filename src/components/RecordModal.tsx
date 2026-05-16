@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHealthStore } from '@/store/useHealthStore';
 import { NewHealthRecord } from '@/types';
-import { Save, Activity, X, Smartphone } from 'lucide-react';
+import { Save, Activity, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Toast } from '@/components/Toast';
 
@@ -112,65 +112,6 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleMessage = (event: any) => {
-      try {
-        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-
-        if (data?.type === 'HEALTH_DATA_ERROR') {
-          showToast(data.error || '삼성 헬스 데이터를 가져오는 중 오류가 발생했습니다.', 'error');
-          return;
-        }
-        if (data?.type !== 'HEALTH_DATA_RESULT') return;
-
-        const latestWeight  = data.payload?.weight?.[0]?.weight?.inKilograms;
-        const latestBodyFat = data.payload?.bodyFat?.[0]?.percentage;
-        const sleepRecord   = data.payload?.sleep?.[0];
-        const latestSleep   = sleepRecord
-          ? (new Date(sleepRecord.endTime).getTime() - new Date(sleepRecord.startTime).getTime()) / 3_600_000
-          : undefined;
-        const latestPeriod  = data.payload?.menstruation?.length > 0;
-
-        if (!latestWeight && !latestBodyFat && !latestSleep && !latestPeriod) {
-          showToast('최근 7일간 동기화된 데이터가 없습니다. 삼성 헬스 앱을 실행한 뒤 다시 불러와 주세요!', 'error');
-          return;
-        }
-
-        setFormData((prev) => ({
-          ...prev,
-          ...(latestWeight  ? { weight:    parseFloat(latestWeight.toFixed(1))   } : {}),
-          ...(latestBodyFat ? { body_fat:  parseFloat(latestBodyFat.toFixed(1))  } : {}),
-          ...(latestSleep   ? { sleep_hours: parseFloat(latestSleep.toFixed(1))  } : {}),
-          ...(latestPeriod  ? { period_flag: true }                               : {}),
-        }));
-
-        if (latestSleep) {
-          setSleepH(Math.floor(latestSleep));
-          setSleepM(Math.round((latestSleep - Math.floor(latestSleep)) * 60));
-        }
-
-        showToast('삼성 헬스 건강 데이터를 성공적으로 불러왔습니다!', 'success');
-      } catch { /* ignored */ }
-    };
-
-    window.addEventListener('message', handleMessage);
-    document.addEventListener('message', handleMessage as any);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-      document.removeEventListener('message', handleMessage as any);
-    };
-  }, [isOpen]);
-
-  const requestHealthData = () => {
-    const rnWindow = window as any;
-    if (rnWindow.ReactNativeWebView) {
-      rnWindow.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_HEALTH_DATA' }));
-    } else {
-      showToast('삼성 헬스 자동 연동은 모바일 앱 환경에서만 작동합니다.', 'error');
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.date || formData.weight <= 0) {
@@ -227,15 +168,6 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
                     <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--accent)] mb-0.5">기본 측정값</p>
                     <h3 className="text-[14px] font-black text-[var(--text-primary)]">체성분</h3>
                   </div>
-                  <button
-                    type="button"
-                    onClick={requestHealthData}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[#1428A0] text-white text-[11px] font-black rounded-xl hover:bg-blue-800 transition-colors shadow-sm cursor-pointer min-h-[36px]"
-                    aria-label="삼성 헬스 데이터 가져오기"
-                  >
-                    <Smartphone className="w-3.5 h-3.5" aria-hidden="true" />
-                    삼성 헬스
-                  </button>
                 </div>
 
                 <div>

@@ -55,9 +55,24 @@ export default function WarehousePage() {
 
   const handleCopyInBody = () => {
     if (records.length === 0) return;
-    const tableHeader = '| 날짜 | 체중 | 골격근 | 체지방 | 내장지방 |\n|---|---|---|---|---|\n';
-    const tableRows = records.map(r => `| ${r.date} | ${r.weight}kg | ${r.skeletal_muscle}kg | ${r.body_fat}% | ${r.visceral_fat_level}LV |`).join('\n');
-    navigator.clipboard.writeText(`[나의 인바디 기록 전체]\n\n${tableHeader}${tableRows}`);
+    
+    let fullText = "[나의 건강 기록 상세 데이터]\n\n";
+    
+    records.forEach(r => {
+      fullText += `### 📅 기록 날짜: ${r.date}\n`;
+      fullText += `- **체성분**: 체중 ${r.weight}kg, 골격근량 ${r.skeletal_muscle}kg, 체지방률 ${r.body_fat}%, 체지방량 ${r.body_fat_mass}kg, 내장지방 ${r.visceral_fat_level}LV, 복부지방비율 ${r.abdominal_fat_ratio}\n`;
+      fullText += `- **신체치수**: 복부둘레 ${r.waist_circumference_belly}cm, 미용허리 ${r.waist_circumference_beauty}cm\n`;
+      fullText += `- **생활패턴**: 수면 ${r.sleep_hours}시간, 배변상태 ${r.bowel_condition === 'good' ? '성공' : '보통'}, 생리 ${r.period_flag ? 'Y' : 'N'}, 음주 ${r.alcohol_flag ? 'Y' : 'N'}\n`;
+      if (r.mounjaro_flag) {
+        fullText += `- **치료**: 마운자로 투여 (${r.mounjaro_dose}mg)\n`;
+      }
+      if (r.memo) {
+        fullText += `- **메모**: ${r.memo}\n`;
+      }
+      fullText += "\n---\n\n";
+    });
+
+    navigator.clipboard.writeText(fullText.trim());
     showCopyFeedback('inbody');
   };
 
