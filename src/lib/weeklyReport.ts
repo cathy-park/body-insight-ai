@@ -80,7 +80,7 @@ export function getDeltaColorClass(
   return isGood ? 'text-emerald-600' : 'text-rose-500';
 }
 
-/** 전주 대비 텍스트 포맷 */
+/** 전주 대비 텍스트 포맷 (레거시) */
 export function formatDelta(
   delta: number | null,
   unit: string,
@@ -88,4 +88,25 @@ export function formatDelta(
   if (delta === null) return '비교 불가';
   if (delta === 0)    return '변화 없음';
   return `전주 대비 ${delta > 0 ? '+' : ''}${delta}${unit}`;
+}
+
+/** 아이콘과 함께 쓰는 짧은 변화량 문자열: "+1.2kg" / "-0.8%" / "0kg" / "—" */
+export function formatDeltaShort(
+  delta: number | null,
+  unit: string,
+): string {
+  if (delta === null) return '—';
+  if (delta === 0)    return `0${unit}`;
+  return `${delta > 0 ? '+' : ''}${delta}${unit}`;
+}
+
+/**
+ * 실제 변화 방향(아이콘 선택용).
+ * 컬러는 isPositiveGood 기반 getDeltaColorClass 로 결정.
+ */
+export function getDeltaDirection(
+  delta: number | null,
+): 'up' | 'down' | 'none' {
+  if (delta === null || delta === 0) return 'none';
+  return delta > 0 ? 'up' : 'down';
 }

@@ -19,7 +19,8 @@ import { BodySignalSection } from '@/components/BodySignalSection';
 import {
   computeWeeklyCompositionReport,
   getDeltaColorClass,
-  formatDelta,
+  getDeltaDirection,
+  formatDeltaShort,
   type WeeklyCompositionReport,
 } from '@/lib/weeklyReport';
 
@@ -565,9 +566,13 @@ export default function DashboardPage() {
                         {m.avg != null ? m.avg : '—'}
                         <span className="text-[10px] font-bold text-[var(--text-muted)] ml-0.5">{m.unit}</span>
                       </p>
-                      <p className={`text-[10px] font-bold leading-snug ${getDeltaColorClass(m.delta, m.isPositiveGood)}`}>
-                        {formatDelta(m.delta, m.unit)}
-                      </p>
+                      {/* 전주 대비: 아이콘 + 짧은 변화량 + 지표별 좋은방향 컬러 */}
+                      <div className={`flex items-center gap-0.5 text-[10px] font-bold leading-none ${getDeltaColorClass(m.delta, m.isPositiveGood)}`}>
+                        {getDeltaDirection(m.delta) === 'up'   && <TrendingUp   className="w-3 h-3 shrink-0" />}
+                        {getDeltaDirection(m.delta) === 'down' && <TrendingDown className="w-3 h-3 shrink-0" />}
+                        {getDeltaDirection(m.delta) === 'none' && <Minus        className="w-3 h-3 shrink-0" />}
+                        <span>{formatDeltaShort(m.delta, m.unit)}</span>
+                      </div>
                     </div>
                   ))}
                   {/* 기록한 날 — 중립 컬러 */}
