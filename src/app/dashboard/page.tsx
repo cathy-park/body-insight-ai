@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { SummaryCards } from '@/components/SummaryCards';
 import { RecordModal } from '@/components/RecordModal';
+import { BodySignalSection } from '@/components/BodySignalSection';
 
 type MetricKey = 'weight' | 'skeletal_muscle' | 'body_fat_mass' | 'body_fat' | 'visceral_fat_level' | 'abdominal_fat_ratio' | 'waist_circumference_belly' | 'waist_circumference_beauty';
 
@@ -337,6 +338,9 @@ export default function DashboardPage() {
           <PlusCircle className="w-4 h-4" />오늘 기록하기
         </button>
       </header>
+
+      {/* ── Body signal section ── */}
+      <BodySignalSection records={records} />
 
       {/* ── Filter bar ── */}
       <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-x-auto scrollbar-hide w-fit" role="group" aria-label="기간 필터">
