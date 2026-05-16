@@ -398,7 +398,7 @@ export default function DashboardPage() {
       <div className="flex !mt-0 bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] w-full sm:w-fit sm:overflow-x-auto sm:scrollbar-hide" role="group" aria-label="기간 필터">
         {(Object.keys(FILTER_LABELS) as (keyof typeof FILTER_LABELS)[]).map((f) => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
-            className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer text-center ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
+            className={`flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200 whitespace-nowrap cursor-pointer text-center flex items-center justify-center ${filter === f ? 'bg-gradient-to-r from-[var(--accent)] to-cyan-500 text-white shadow-sm shadow-cyan-200' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
             {FILTER_LABELS[f]}
           </button>
         ))}
@@ -434,7 +434,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="h-[380px] w-full px-2 py-4">
+        <div className="h-[380px] w-full px-2 py-4" role="img" aria-label={`${selectedMetrics.map(m => METRIC_LABELS[m].label).join('·')} 시계열 차트`}>
           {filteredRecords.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 12, right: 16, left: -20, bottom: 0 }}>
@@ -559,7 +559,7 @@ export default function DashboardPage() {
                 /* 5개 체성분 지표 + 기록한 날 = 6 미니 카드 (모바일 2열 / PC 3열) */
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {weeklyReport.metrics.map(m => (
-                    <div key={m.key} className="bg-[var(--surface-2)] rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0">
+                    <div key={m.key} className="bg-[var(--surface-2)] rounded-2xl p-3 sm:p-3.5 flex flex-col gap-1 min-w-0 sm:hover:shadow-sm sm:hover:-translate-y-0.5 sm:transition-all sm:duration-200">
                       <p className="text-[10px] font-bold text-[var(--text-muted)] truncate">{m.label}</p>
                       <p className="text-[16px] sm:text-[17px] font-black text-[var(--text-primary)] leading-none">
                         {m.avg != null ? m.avg : '—'}

@@ -61,7 +61,7 @@ function SignalCard({ signal }: { signal: BodySignal }) {
     <article
       className={[
         'flex flex-col gap-2 p-4 rounded-2xl border transition-all duration-200',
-        'hover:shadow-md active:scale-[0.98]',
+        'sm:hover:shadow-md sm:active:scale-[0.98]',
         style.card,
         style.border,
         // 집중관리는 보더를 약간 두껍게
@@ -74,7 +74,7 @@ function SignalCard({ signal }: { signal: BodySignal }) {
         <div className="flex items-start gap-2">
           {/* 상태 인디케이터 점 */}
           <span
-            className={`mt-[3px] w-2 h-2 rounded-full shrink-0 ${style.dot} ${isCritical || isWarning ? 'animate-pulse' : ''}`}
+            className={`mt-[3px] w-2 h-2 rounded-full shrink-0 ${style.dot} ${isCritical || isWarning ? 'motion-safe:animate-pulse' : ''}`}
             aria-hidden="true"
           />
           <p className="text-[14px] font-black text-[var(--text-primary)] leading-snug">{signal.title}</p>
@@ -174,7 +174,7 @@ function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent
 
         {/* 모바일 범례: 배경박스, 제목 바로 아래 (PC에서는 숨김) */}
         <div
-          className="sm:hidden flex items-center gap-2.5 mt-1.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] w-fit"
+          className="sm:hidden flex items-center gap-2.5 mt-1.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] w-full"
           aria-label="상태 범례"
         >
           {LEGEND_ITEMS.map(({ dot, label }) => (

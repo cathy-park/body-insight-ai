@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { AutoSyncHandler } from "@/components/AutoSyncHandler";
 import { FirestoreSync } from "@/components/FirestoreSync";
 
-const inter = Inter({
+// Medical Clean 계열: 한국어 커버리지 + 클린 헬스케어 느낌
+const notoSansKr = Noto_Sans_KR({
+  weight: ["300", "400", "500", "700", "900"],
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-noto-kr",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={inter.variable}>
+    <html lang="ko" className={notoSansKr.variable}>
       <body className="font-sans bg-[var(--surface-0)] min-h-screen antialiased">
         <Navigation />
         <AutoSyncHandler />
