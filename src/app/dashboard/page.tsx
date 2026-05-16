@@ -11,7 +11,7 @@ import {
 import {
   History, TrendingUp, TrendingDown, Minus, PlusCircle, Activity,
   ClipboardList, ArrowRight, Scale, CalendarDays, Target, Dumbbell,
-  Flame,
+  Flame, ChevronDown, Pencil,
 } from 'lucide-react';
 import { SummaryCards } from '@/components/SummaryCards';
 import { RecordModal } from '@/components/RecordModal';
@@ -107,6 +107,7 @@ export default function DashboardPage() {
 
   const [filter, setFilter] = useState<keyof typeof FILTER_LABELS>('all');
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>(['weight']);
+  const [selectedWeekOffset, setSelectedWeekOffset] = useState(0);
 
   const filteredRecords = useMemo(() => {
     if (!records.length) return [];
@@ -118,33 +119,88 @@ export default function DashboardPage() {
     return records.filter(r => new Date(r.date) >= cutoff);
   }, [records, filter]);
 
-  // ── Weekly report ──────────────────────────────────────────────────
+  // ── 주차 옵션 생성 (기록이 있는 주차만, 최신→과거 순) ──────────────
+  const weekOptions = useMemo(() => {
+    if (!records.length) return [];
+    const now        = new Date();
+    const thisMonday = startOfWeek(now);
+    const firstMon   = startOfWeek(new Date(records[0].date));
+    const pad        = (n: number) => String(n).padStart(2, '0');
+
+    const opts: { offset: number; label: string }[] = [];
+    let offset    = 0;
+    let curMonday = new Date(thisMonday);
+
+    while (curMonday >= firstMon) {
+      const curSunday = new Date(curMonday);
+      curSunday.setDate(curSunday.getDate() + 6);
+      curSunday.setHours(23, 59, 59, 999);
+      const effectiveEnd = offset === 0 ? now : curSunday;
+
+      const hasRecs = records.some(r => {
+        const d = new Date(r.date);
+        return d >= curMonday && d <= effectiveEnd;
+      });
+
+      if (hasRecs) {
+        let label: string;
+        if      (offset === 0) label = '이번 주';
+        else if (offset === 1) label = '지난 주';
+        else if (offset === 2) label = '2주 전';
+        else {
+          const s  = `${curMonday.getFullYear()}.${pad(curMonday.getMonth()+1)}.${pad(curMonday.getDate())}`;
+          const eD = curSunday > now ? now : curSunday;
+          const e  = `${pad(eD.getMonth()+1)}.${pad(eD.getDate())}`;
+          label = `${s} ~ ${e}`;
+        }
+        opts.push({ offset, label });
+      }
+
+      curMonday = new Date(curMonday);
+      curMonday.setDate(curMonday.getDate() - 7);
+      offset++;
+    }
+    return opts;
+  }, [records]);
+
+  // ── 주간 리포트 (선택한 주차 기준) ────────────────────────────────
   const weeklyReport = useMemo(() => {
     if (!records.length) return null;
-    const now = new Date();
+    const now        = new Date();
     const thisMonday = startOfWeek(now);
-    const lastMonday = new Date(thisMonday); lastMonday.setDate(lastMonday.getDate() - 7);
-    const lastSunday = new Date(thisMonday); lastSunday.setDate(lastSunday.getDate() - 1);
+
+    const selMonday = new Date(thisMonday);
+    selMonday.setDate(selMonday.getDate() - selectedWeekOffset * 7);
+    const selSunday = new Date(selMonday);
+    selSunday.setDate(selSunday.getDate() + 6);
+    selSunday.setHours(23, 59, 59, 999);
+
+    const prevMonday = new Date(selMonday);
+    prevMonday.setDate(prevMonday.getDate() - 7);
+    const prevSunday = new Date(selMonday);
+    prevSunday.setDate(prevSunday.getDate() - 1);
+    prevSunday.setHours(23, 59, 59, 999);
+
+    const effectiveEnd = selectedWeekOffset === 0 ? now : selSunday;
 
     const inRange = (date: string, from: Date, to: Date) => {
-      const d = new Date(date);
-      return d >= from && d <= to;
+      const d = new Date(date); return d >= from && d <= to;
     };
 
-    const thisWeek = records.filter(r => inRange(r.date, thisMonday, now));
-    const lastWeek = records.filter(r => inRange(r.date, lastMonday, lastSunday));
+    const selRecs  = records.filter(r => inRange(r.date, selMonday,  effectiveEnd));
+    const prevRecs = records.filter(r => inRange(r.date, prevMonday, prevSunday));
 
     const avgWeight = (recs: typeof records) => {
       const w = recs.filter(r => r.weight > 0);
       return w.length ? parseFloat((w.reduce((s, r) => s + r.weight, 0) / w.length).toFixed(1)) : null;
     };
 
-    const thisAvg = avgWeight(thisWeek);
-    const lastAvg = avgWeight(lastWeek);
-    const delta = thisAvg !== null && lastAvg !== null ? parseFloat((thisAvg - lastAvg).toFixed(1)) : null;
+    const thisAvg = avgWeight(selRecs);
+    const lastAvg = avgWeight(prevRecs);
+    const delta   = thisAvg !== null && lastAvg !== null ? parseFloat((thisAvg - lastAvg).toFixed(1)) : null;
 
-    return { thisAvg, lastAvg, delta, days: thisWeek.length };
-  }, [records]);
+    return { thisAvg, lastAvg, delta, days: selRecs.length };
+  }, [records, selectedWeekOffset]);
 
   // ── Body composition ──────────────────────────────────────────────
   const compositionData = useMemo(() => {
@@ -468,41 +524,73 @@ export default function DashboardPage() {
 
           {/* Weekly report */}
           {weeklyReport && (
-            <section aria-label="이번 주 리포트" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
-                <CalendarDays className="w-3.5 h-3.5" />이번 주 리포트
-              </p>
-              <h2 className="text-base font-black text-[var(--text-primary)] mb-4">주간 체중 요약</h2>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-[var(--accent-muted)] rounded-2xl p-4 text-center">
-                  <p className="text-xl font-black text-[var(--accent)]">
-                    {weeklyReport.thisAvg != null ? `${weeklyReport.thisAvg}` : '—'}
+            <section aria-label="주간 체중 리포트" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
+
+              {/* 헤더: 제목 + 주차 드롭다운 */}
+              <div className="flex items-start justify-between gap-2 mb-4">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
+                    <CalendarDays className="w-3.5 h-3.5" />주간 리포트
                   </p>
-                  <p className="text-[10px] font-bold text-[var(--accent)] opacity-70 mt-1">이번 주 평균 (kg)</p>
+                  <h2 className="text-base font-black text-[var(--text-primary)]">주간 체중 요약</h2>
                 </div>
-                <div className={`rounded-2xl p-4 text-center ${
-                  weeklyReport.delta == null ? 'bg-[var(--surface-2)]'
-                  : weeklyReport.delta < 0 ? 'bg-emerald-50'
-                  : weeklyReport.delta > 0 ? 'bg-rose-50'
-                  : 'bg-[var(--surface-2)]'
-                }`}>
-                  <p className={`text-xl font-black ${
-                    weeklyReport.delta == null ? 'text-[var(--text-muted)]'
-                    : weeklyReport.delta < 0 ? 'text-emerald-600'
-                    : weeklyReport.delta > 0 ? 'text-rose-500'
-                    : 'text-[var(--text-muted)]'
-                  }`}>
-                    {weeklyReport.delta != null
-                      ? (weeklyReport.delta > 0 ? `+${weeklyReport.delta}` : `${weeklyReport.delta}`)
-                      : '—'}
-                  </p>
-                  <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1">전주 대비 (kg)</p>
-                </div>
-                <div className="bg-violet-50 rounded-2xl p-4 text-center">
-                  <p className="text-xl font-black text-violet-600">{weeklyReport.days}</p>
-                  <p className="text-[10px] font-bold text-violet-400 mt-1">기록한 날 (일)</p>
-                </div>
+                {weekOptions.length > 0 && (
+                  <div className="relative shrink-0 mt-0.5">
+                    <select
+                      value={selectedWeekOffset}
+                      onChange={e => setSelectedWeekOffset(Number(e.target.value))}
+                      className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border)] rounded-full pl-3 pr-7 py-1.5 cursor-pointer outline-none appearance-none max-w-[150px]"
+                      aria-label="조회할 주차 선택"
+                    >
+                      {weekOptions.map(opt => (
+                        <option key={opt.offset} value={opt.offset}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+                  </div>
+                )}
               </div>
+
+              {/* 빈 상태 or 데이터 */}
+              {weeklyReport.days === 0 ? (
+                <div className="flex flex-col items-center justify-center py-5 text-center gap-2 bg-[var(--surface-2)] rounded-2xl">
+                  <CalendarDays className="w-6 h-6 text-[var(--text-muted)] opacity-30" />
+                  <p className="text-[12px] text-[var(--text-muted)] leading-relaxed max-w-[200px]">
+                    선택한 주차에는 기록이 없어요.<br />기록이 있는 주차를 선택해 주세요.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-[var(--accent-muted)] rounded-2xl p-4 text-center">
+                    <p className="text-xl font-black text-[var(--accent)]">
+                      {weeklyReport.thisAvg != null ? `${weeklyReport.thisAvg}` : '—'}
+                    </p>
+                    <p className="text-[10px] font-bold text-[var(--accent)] opacity-70 mt-1">주 평균 (kg)</p>
+                  </div>
+                  <div className={`rounded-2xl p-4 text-center ${
+                    weeklyReport.delta == null ? 'bg-[var(--surface-2)]'
+                    : weeklyReport.delta < 0   ? 'bg-emerald-50'
+                    : weeklyReport.delta > 0   ? 'bg-rose-50'
+                    : 'bg-[var(--surface-2)]'
+                  }`}>
+                    <p className={`text-xl font-black ${
+                      weeklyReport.delta == null ? 'text-[var(--text-muted)]'
+                      : weeklyReport.delta < 0   ? 'text-emerald-600'
+                      : weeklyReport.delta > 0   ? 'text-rose-500'
+                      : 'text-[var(--text-muted)]'
+                    }`}>
+                      {weeklyReport.delta != null
+                        ? (weeklyReport.delta > 0 ? `+${weeklyReport.delta}` : `${weeklyReport.delta}`)
+                        : '—'}
+                    </p>
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1">전주 대비 (kg)</p>
+                  </div>
+                  <div className="bg-violet-50 rounded-2xl p-4 text-center">
+                    <p className="text-xl font-black text-violet-600">{weeklyReport.days}</p>
+                    <p className="text-[10px] font-bold text-violet-400 mt-1">기록한 날 (일)</p>
+                  </div>
+                </div>
+              )}
             </section>
           )}
 
@@ -599,7 +687,7 @@ export default function DashboardPage() {
         className="fixed bottom-[calc(68px+env(safe-area-inset-bottom,0px))] right-5 z-40 sm:hidden w-14 h-14 bg-gradient-to-br from-[var(--accent)] to-cyan-500 text-white rounded-full shadow-xl shadow-cyan-300/60 flex items-center justify-center active:scale-95 transition-all duration-200 cursor-pointer"
         aria-label="오늘 기록하기"
       >
-        <PlusCircle className="w-6 h-6" />
+        <Pencil className="w-5 h-5" />
       </button>
 
       <RecordModal isOpen={isRecordModalOpen} onClose={() => setIsRecordModalOpen(false)} />

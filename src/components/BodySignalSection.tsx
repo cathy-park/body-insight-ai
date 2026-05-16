@@ -172,8 +172,11 @@ function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent
         </p>
         <h2 className="text-base font-black text-[var(--text-primary)]">오늘의 바디 신호</h2>
 
-        {/* 모바일 범례: 배경 없이 도트+라벨만, 제목 바로 아래 */}
-        <div className="sm:hidden flex items-center gap-3 mt-1.5" aria-label="상태 범례">
+        {/* 모바일 범례: 배경박스, 제목 바로 아래 (PC에서는 숨김) */}
+        <div
+          className="sm:hidden flex items-center gap-2.5 mt-1.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] w-fit"
+          aria-label="상태 범례"
+        >
           {LEGEND_ITEMS.map(({ dot, label }) => (
             <span key={label} className="flex items-center gap-1">
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
@@ -183,11 +186,11 @@ function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent
         </div>
       </div>
 
-      {/* 우측: PC 범례 배경박스 + 배지 스택 */}
-      <div className="flex flex-col items-end gap-2 shrink-0">
-        {/* PC 전용 범례 — 배경박스, 디자인 시스템 surface-2 + border-subtle */}
+      {/* 우측: PC 범례 배경박스 + 배지 — 한 줄 가로 정렬 */}
+      <div className="hidden sm:flex items-center gap-2 shrink-0">
+        {/* PC 범례 배경박스 */}
         <div
-          className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+          className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)]"
           aria-label="상태 범례"
         >
           {LEGEND_ITEMS.map(({ dot, label }) => (
@@ -198,7 +201,7 @@ function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent
           ))}
         </div>
 
-        {/* 최근 기록 기준 배지 */}
+        {/* 최근 기록 기준 배지 — 범례와 같은 줄 */}
         <span
           className={[
             'text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0',
@@ -210,6 +213,18 @@ function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent
           최근 기록 기준
         </span>
       </div>
+
+      {/* 모바일 전용 배지 */}
+      <span
+        className={[
+          'sm:hidden text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 self-start',
+          hasUrgent
+            ? 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-soft)]'
+            : 'text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border-subtle)]',
+        ].join(' ')}
+      >
+        최근 기록 기준
+      </span>
     </div>
   );
 }
