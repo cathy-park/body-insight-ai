@@ -110,3 +110,70 @@ export function getDeltaDirection(
   if (delta === null || delta === 0) return 'none';
   return delta > 0 ? 'up' : 'down';
 }
+
+// ── 주간 한 줄 코멘트 ─────────────────────────────────────────────────
+// 바디인사이트AI 톤: 친근하고 부드러운 건강 기록 코치. 평가·진단 금지.
+// 이 객체에서 모든 UX라이팅 문구를 관리합니다.
+
+const WEEKLY_COMMENT_COPY = {
+  lowData:      '기록한 날이 적어 이번 주 흐름은 참고용으로만 봐주세요 📝',
+  noPrevData:   '전주 기록이 없어 이번 주 평균만 확인할 수 있어요.',
+  muscleUpFatDown:   '근육량은 늘고 체지방률은 내려간 좋은 흐름이에요 💪',
+  weightUpFatUp:     '체중과 체지방률이 함께 올라 이번 주는 지방 분포를 살펴봐주세요 🔍',
+  weightDownMuscleDown: '체중은 줄었지만 근육량도 함께 줄어 감량 속도를 점검해보세요 🧭',
+  fatMassAndVisceralDown: '지방 관련 지표가 함께 내려간 긍정적인 흐름이에요 ✨',
+  muscleDownFatUp: '근육량은 줄고 체지방률은 오른 흐름이에요. 근육 유지도 함께 챙겨보세요 💪',
+  stable:       '전주와 큰 변화 없이 안정적인 흐름이에요 🌿',
+  default:      '이번 주 체성분 흐름을 살펴봤어요. 지표 변화를 함께 확인해보세요.',
+} as const;
+
+/**
+ * 주간 체성분 리포트를 받아 규칙 기반으로 한 줄 코멘트를 반환합니다.
+ * 우선순위: 데이터 부족 → 비교 불가 → 패턴 매칭 → 안정 → 기본
+ */
+export function generateWeeklySummaryComment(
+  report: WeeklyCompositionReport,
+): string {
+  const { metrics, days } = report;
+
+  if (days <= 2) return WEEKLY_COMMENT_COPY.lowData;
+
+  const get = (key: string) => metrics.find(m => m.key === key)?.delta ?? null;
+  const muscleDelta   = get('skeletal_muscle');
+  const fatRateDelta  = get('body_fat');
+  const weightDelta   = get('weight');
+  const fatMassDelta  = get('body_fat_mass');
+  const visceralDelta = get('visceral_fat_level');
+
+  const hasAnyComparison = metrics.some(m => m.delta !== null);
+  if (!hasAnyComparison) return WEEKLY_COMMENT_COPY.noPrevData;
+
+  // 패턴 매칭 (우선순위 순)
+  if (muscleDelta !== null && fatRateDelta !== null && muscleDelta > 0 && fatRateDelta < 0)
+    return WEEKLY_COMMENT_COPY.muscleUpFatDown;
+
+  if (muscleDelta !== null && fatRateDelta !== null && muscleDelta < 0 && fatRateDelta > 0)
+    return WEEKLY_COMMENT_COPY.muscleDownFatUp;
+
+  if (weightDelta !== null && fatRateDelta !== null && weightDelta > 0 && fatRateDelta > 0)
+    return WEEKLY_COMMENT_COPY.weightUpFatUp;
+
+  if (weightDelta !== null && muscleDelta !== null && weightDelta < 0 && muscleDelta < 0)
+    return WEEKLY_COMMENT_COPY.weightDownMuscleDown;
+
+  if (fatMassDelta !== null && visceralDelta !== null && fatMassDelta < 0 && visceralDelta < 0)
+    return WEEKLY_COMMENT_COPY.fatMassAndVisceralDown;
+
+  // 유의미한 변화 여부 판단
+  const THRESHOLDS: Record<string, number> = {
+    weight: 0.3, skeletal_muscle: 0.2, body_fat: 0.2,
+    body_fat_mass: 0.2, visceral_fat_level: 1,
+  };
+  const hasSignificant = metrics
+    .filter(m => m.delta !== null)
+    .some(m => Math.abs(m.delta as number) >= (THRESHOLDS[m.key] ?? 0.3));
+
+  if (!hasSignificant) return WEEKLY_COMMENT_COPY.stable;
+
+  return WEEKLY_COMMENT_COPY.default;
+}

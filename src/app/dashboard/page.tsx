@@ -11,7 +11,7 @@ import {
 import {
   History, TrendingUp, TrendingDown, Minus, PlusCircle, Activity,
   ClipboardList, ArrowRight, Scale, CalendarDays, Target, Dumbbell,
-  Flame, ChevronDown, Pencil,
+  Flame, ChevronDown, ChevronLeft, ChevronRight, Pencil,
 } from 'lucide-react';
 import { SummaryCards } from '@/components/SummaryCards';
 import { RecordModal } from '@/components/RecordModal';
@@ -21,6 +21,7 @@ import {
   getDeltaColorClass,
   getDeltaDirection,
   formatDeltaShort,
+  generateWeeklySummaryComment,
   type WeeklyCompositionReport,
 } from '@/lib/weeklyReport';
 
@@ -341,6 +342,17 @@ export default function DashboardPage() {
     );
   }
 
+  // ── 주차 네비게이션 ───────────────────────────────────────────────
+  // weekOptions는 최신→과거 순(index 0 = 이번 주). prev = 더 오래된 주(index+1)
+  const currentWeekIdx = weekOptions.findIndex(o => o.offset === selectedWeekOffset);
+  const canGoPrev = currentWeekIdx < weekOptions.length - 1;
+  const canGoNext = currentWeekIdx > 0;
+  const goPrevWeek = () => { if (canGoPrev) setSelectedWeekOffset(weekOptions[currentWeekIdx + 1].offset); };
+  const goNextWeek = () => { if (canGoNext) setSelectedWeekOffset(weekOptions[currentWeekIdx - 1].offset); };
+
+  // ── 주간 한 줄 코멘트 ─────────────────────────────────────────────
+  const weeklySummaryComment = weeklyReport ? generateWeeklySummaryComment(weeklyReport) : null;
+
   // ── Derived values for header chips ──────────────────────────────
   const latest  = records[records.length - 1];
   const prev    = records.length >= 2 ? records[records.length - 2] : null;
@@ -524,8 +536,8 @@ export default function DashboardPage() {
           {weeklyReport && (
             <section aria-label="주간 체성분 리포트" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] p-6">
 
-              {/* 헤더: 제목 + 주차 드롭다운 */}
-              <div className="flex items-start justify-between gap-2 mb-4">
+              {/* 헤더: 제목 + 주차 < 드롭다운 > */}
+              <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
                     <CalendarDays className="w-3.5 h-3.5" />주간 리포트
@@ -533,21 +545,46 @@ export default function DashboardPage() {
                   <h2 className="text-base font-black text-[var(--text-primary)]">주간 체성분 요약</h2>
                 </div>
                 {weekOptions.length > 0 && (
-                  <div className="relative shrink-0 mt-0.5">
-                    <select
-                      value={selectedWeekOffset}
-                      onChange={e => setSelectedWeekOffset(Number(e.target.value))}
-                      className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border)] rounded-full pl-3 pr-7 py-1.5 cursor-pointer outline-none appearance-none max-w-[150px]"
-                      aria-label="조회할 주차 선택"
+                  <div className="flex items-center gap-1 shrink-0 mt-0.5">
+                    <button
+                      onClick={goPrevWeek}
+                      disabled={!canGoPrev}
+                      className="p-1 rounded-full hover:bg-[var(--surface-2)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      aria-label="이전 주"
                     >
-                      {weekOptions.map(opt => (
-                        <option key={opt.offset} value={opt.offset}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+                      <ChevronLeft className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                    </button>
+                    <div className="relative">
+                      <select
+                        value={selectedWeekOffset}
+                        onChange={e => setSelectedWeekOffset(Number(e.target.value))}
+                        className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--surface-2)] border border-[var(--border)] rounded-full pl-3 pr-6 py-1.5 cursor-pointer outline-none appearance-none max-w-[110px]"
+                        aria-label="조회할 주차 선택"
+                      >
+                        {weekOptions.map(opt => (
+                          <option key={opt.offset} value={opt.offset}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+                    </div>
+                    <button
+                      onClick={goNextWeek}
+                      disabled={!canGoNext}
+                      className="p-1 rounded-full hover:bg-[var(--surface-2)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      aria-label="다음 주"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                    </button>
                   </div>
                 )}
               </div>
+
+              {/* 한 줄 요약 코멘트 */}
+              {weeklySummaryComment && weeklyReport.days > 0 && (
+                <p className="text-[12px] leading-relaxed text-[var(--text-secondary)] bg-[var(--surface-2)] rounded-xl px-3 py-2 mb-3">
+                  {weeklySummaryComment}
+                </p>
+              )}
 
               {/* 빈 상태 or 데이터 */}
               {weeklyReport.days === 0 ? (
