@@ -155,18 +155,36 @@ export function BodySignalSection({ records }: Props) {
   );
 }
 
+const LEGEND_ITEMS = [
+  { dot: 'bg-emerald-400', label: '좋음' },
+  { dot: 'bg-sky-400',     label: '보통' },
+  { dot: 'bg-orange-400',  label: '주의' },
+  { dot: 'bg-rose-500',    label: '집중관리' },
+] as const;
+
 function SectionHeader({ dateLabel, hasUrgent }: { dateLabel?: string; hasUrgent?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-start justify-between gap-3">
       <div>
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-0.5">
           <span aria-hidden="true">🧬</span>바디 신호 분석
         </p>
         <h2 className="text-base font-black text-[var(--text-primary)]">오늘의 바디 신호</h2>
+
+        {/* 상태 범례 */}
+        <div className="flex items-center gap-3 mt-1.5" aria-label="상태 범례">
+          {LEGEND_ITEMS.map(({ dot, label }) => (
+            <span key={label} className="flex items-center gap-1">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} aria-hidden="true" />
+              <span className="text-[10px] font-semibold text-[var(--text-muted)]">{label}</span>
+            </span>
+          ))}
+        </div>
       </div>
+
       <span
         className={[
-          'text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0',
+          'text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 mt-0.5',
           hasUrgent
             ? 'text-[var(--accent)] bg-[var(--accent-muted)] border-[var(--accent-soft)]'
             : 'text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border-subtle)]',
