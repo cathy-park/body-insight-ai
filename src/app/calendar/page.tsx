@@ -130,31 +130,6 @@ export default function CalendarPage() {
         aria-label={`${format(currentMonth, 'yyyy년 MM월', { locale: ko })} 달력`}
         className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-hidden"
       >
-        {/* 범례 */}
-        <div className="flex items-center gap-4 px-4 py-2 border-b border-[var(--border-subtle)] overflow-x-auto scrollbar-hide" aria-label="달력 범례">
-          <span className="text-[9px] font-black uppercase tracking-[0.1em] text-[var(--text-muted)] shrink-0">범례</span>
-          <span className="flex items-center gap-1 whitespace-nowrap shrink-0">
-            <span className="text-[9px] font-black text-[var(--accent)] bg-[var(--accent-muted)] px-1.5 py-0.5 rounded-full leading-none">kg</span>
-            <span className="text-[9px] font-semibold text-[var(--text-muted)]">체중</span>
-          </span>
-          <span className="flex items-center gap-1 whitespace-nowrap shrink-0">
-            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full text-white leading-none" style={{ backgroundColor: '#5E2D91' }}>MJ</span>
-            <span className="text-[9px] font-semibold text-[var(--text-muted)]">마운자로</span>
-          </span>
-          <span className="flex items-center gap-1 whitespace-nowrap shrink-0">
-            <Smile className="w-3 h-3 text-emerald-500" aria-hidden="true" />
-            <span className="text-[9px] font-semibold text-[var(--text-muted)]">컨디션</span>
-          </span>
-          <span className="flex items-center gap-1 whitespace-nowrap shrink-0">
-            <Wine className="w-3 h-3 text-amber-500" aria-hidden="true" />
-            <span className="text-[9px] font-semibold text-[var(--text-muted)]">음주</span>
-          </span>
-          <span className="flex items-center gap-1 whitespace-nowrap shrink-0">
-            <span className="w-2 h-2 bg-rose-400 rounded-full shrink-0" aria-hidden="true" />
-            <span className="text-[9px] font-semibold text-[var(--text-muted)]">생리</span>
-          </span>
-        </div>
-
         {/* Weekday headers */}
         <div className="grid grid-cols-7 bg-[var(--surface-2)] border-b border-[var(--border)]" role="row">
           {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
