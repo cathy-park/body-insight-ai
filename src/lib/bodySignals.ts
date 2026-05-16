@@ -9,14 +9,17 @@ export const BODY_SIGNAL_THRESHOLDS = {
   },
   body_fat: {
     good_max:    28,   // <=28 → 좋음
+    normal_max:  30,   // <=30 → 보통
     warning_max: 32,   // <=32 → 주의, >32 → 집중관리
   },
   body_fat_mass: {
-    good:    14,   // <=14 → 좋음
-    warning: 17,   // <=17 → 주의, >17 → 집중관리
+    good:    14,    // <=14 → 좋음
+    normal:  15.5,  // <=15.5 → 보통
+    warning: 17,    // <=17 → 주의, >17 → 집중관리
   },
   abdominal_fat_ratio: {
     good:    0.85,  // <=0.85 → 좋음
+    normal:  0.87,  // <=0.87 → 보통
     warning: 0.90,  // <=0.90 → 주의, >0.90 → 집중관리
   },
   visceral_fat_level: {
@@ -104,7 +107,7 @@ export const COMBO_COPY: Record<string, { title: string; desc: string; status: S
     status: 'warning',
   },
   visceral_stable_fat_high: {
-    title: '내장지방은 안정 🌿',
+    title: '체지방률 체크 필요 🔍',
     desc: '내장지방은 안정권이지만 체지방률은 관리가 필요한 편이에요. 전체 지방량과 근육량 흐름을 함께 확인해보세요.',
     status: 'warning',
   },
@@ -144,6 +147,7 @@ function getSkeletalMuscleStatus(v: number, delta: number | null): SignalStatus 
 function getBodyFatStatus(v: number): SignalStatus {
   const t = BODY_SIGNAL_THRESHOLDS.body_fat;
   if (v <= t.good_max)    return 'good';
+  if (v <= t.normal_max)  return 'normal';
   if (v <= t.warning_max) return 'warning';
   return 'critical';
 }
@@ -151,6 +155,7 @@ function getBodyFatStatus(v: number): SignalStatus {
 function getBodyFatMassStatus(v: number): SignalStatus {
   const t = BODY_SIGNAL_THRESHOLDS.body_fat_mass;
   if (v <= t.good)    return 'good';
+  if (v <= t.normal)  return 'normal';
   if (v <= t.warning) return 'warning';
   return 'critical';
 }
@@ -158,6 +163,7 @@ function getBodyFatMassStatus(v: number): SignalStatus {
 function getAbdominalFatStatus(v: number): SignalStatus {
   const t = BODY_SIGNAL_THRESHOLDS.abdominal_fat_ratio;
   if (v <= t.good)    return 'good';
+  if (v <= t.normal)  return 'normal';
   if (v <= t.warning) return 'warning';
   return 'critical';
 }

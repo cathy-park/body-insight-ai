@@ -346,8 +346,8 @@ export default function DashboardPage() {
   // ── 주차 네비게이션 ───────────────────────────────────────────────
   // weekOptions는 최신→과거 순(index 0 = 이번 주). prev = 더 오래된 주(index+1)
   const currentWeekIdx = weekOptions.findIndex(o => o.offset === selectedWeekOffset);
-  const canGoPrev = currentWeekIdx < weekOptions.length - 1;
-  const canGoNext = currentWeekIdx > 0;
+  const canGoPrev = currentWeekIdx !== -1 && currentWeekIdx < weekOptions.length - 1;
+  const canGoNext = currentWeekIdx !== -1 && currentWeekIdx > 0;
   const goPrevWeek = () => { if (canGoPrev) setSelectedWeekOffset(weekOptions[currentWeekIdx + 1].offset); };
   const goNextWeek = () => { if (canGoNext) setSelectedWeekOffset(weekOptions[currentWeekIdx - 1].offset); };
 

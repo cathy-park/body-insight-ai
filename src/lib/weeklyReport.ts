@@ -125,6 +125,10 @@ const WEEKLY_COMMENT_COPY: Record<string, { status: SignalStatus; message: strin
     status: 'good',
     message: '근육량은 늘고 체지방률은 내려간 좋은 흐름이에요 💪',
   },
+  muscleOnlyUp: {
+    status: 'good',
+    message: '근육량이 전주보다 늘어난 좋은 흐름이에요 💪',
+  },
   fatMassAndVisceralDown: {
     status: 'good',
     message: '지방 관련 지표가 함께 내려간 긍정적인 흐름이에요 ✨',
@@ -199,6 +203,9 @@ export function generateWeeklySummaryComment(
     return WEEKLY_COMMENT_COPY.muscleUpFatDown;
   if (fatMassDelta !== null && visceralDelta !== null && fatMassDelta < 0 && visceralDelta < 0)
     return WEEKLY_COMMENT_COPY.fatMassAndVisceralDown;
+  // 좋음 (골격근 단독 증가 — 체지방 데이터 없는 주차 대응)
+  if (muscleDelta !== null && muscleDelta > 0 && fatRateDelta === null)
+    return WEEKLY_COMMENT_COPY.muscleOnlyUp;
 
   // 주의
   if (muscleDelta !== null && fatRateDelta !== null && muscleDelta < 0 && fatRateDelta > 0)
