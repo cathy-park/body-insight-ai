@@ -502,20 +502,24 @@ export default function DashboardPage() {
 
         {/* ── Main chart ── */}
         <section aria-label="지표별 변화 추이" className="bg-white rounded-3xl border border-[var(--border)] shadow-[var(--shadow-card)] overflow-hidden">
-          <div className="p-6 pb-0 flex flex-wrap items-start justify-between gap-4">
+          {/* 모바일: 세로 배치(라벨→제목→예측→pill), 데스크탑: 좌우 배치 */}
+          <div className="p-5 sm:p-6 pb-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)] flex items-center gap-1.5 mb-1">
                 <TrendingUp className="w-3.5 h-3.5" />멀티 트래킹 분석
               </p>
               <h2 className="text-lg font-black text-[var(--text-primary)]">지표별 변화 추이</h2>
               {selectedMetrics.includes('weight') && recentPrediction !== null && (
-                <p className="text-[11px] text-[var(--text-muted)] mt-0.5 flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-orange-400" />
-                  {'value' in recentPrediction
-                    ? recentPrediction.highVolatility
-                      ? <>4주 후 약 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;— 최근 변동이 커서 참고용으로만 봐주세요 📝</>
-                      : <>최근 흐름 기준 4주 후 약 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;참고 예상</>
-                    : '예측하려면 최근 기록이 조금 더 필요해요 📝'}
+                <p className="text-[11px] text-[var(--text-muted)] mt-2 flex items-start gap-1">
+                  <Flame className="w-3 h-3 text-orange-400 shrink-0 mt-0.5" />
+                  {/* 텍스트를 단일 span으로 감싸 flex child 단위 줄바꿈 방지 */}
+                  <span>
+                    {'value' in recentPrediction
+                      ? recentPrediction.highVolatility
+                        ? <><span className="whitespace-nowrap font-black text-[var(--text-secondary)]">4주 후 약 {recentPrediction.value}kg</span>{' — 최근 변동이 커서 참고용으로만 봐주세요 📝'}</>
+                        : <>{'최근 흐름 기준 '}<span className="whitespace-nowrap font-black text-[var(--text-secondary)]">4주 후 약 {recentPrediction.value}kg</span>{' 참고 예상'}</>
+                      : '예측하려면 최근 기록이 조금 더 필요해요 📝'}
+                  </span>
                 </p>
               )}
             </div>
