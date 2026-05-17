@@ -84,36 +84,57 @@ function calcTrend(points: { x: number; y: number }[]): { slope: number; interce
   return { slope, intercept };
 }
 
-// 최근 30일 기록 기반 4주 후 체중 예측.
-// 반환: 예측값 { value } | 데이터 부족 { insufficient: true } | weight 지표 없음 null
+// 날짜 오름차순 정렬된 weight 기록 배열의 선형회귀 기울기(일평균 변화량)를 반환.
+function dailySlope(window: { date: string; weight: number }[]): number | null {
+  const firstMs = new Date(window[0].date).getTime();
+  const points = window.map(r => ({
+    x: Math.round((new Date(r.date).getTime() - firstMs) / 86400000),
+    y: r.weight,
+  }));
+  return calcTrend(points)?.slope ?? null;
+}
+
+// 4주 후 체중 예측: 최근 30일 흐름(60%) + 최근 7일 흐름(40%) 가중 평균.
+// 최근 7일 기록 3개 미만이면 30일 기준만 사용.
+// 최근 30일 기록 7개 미만이면 { insufficient: true } 반환.
+// weight 기록이 없으면 null 반환.
 function calcRecentPrediction(
   allRecords: { date: string; weight?: number | null }[],
 ): { value: number } | { insufficient: true } | null {
   const sorted = [...allRecords]
     .filter(r => r.weight && r.weight > 0)
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) => a.date.localeCompare(b.date)) as { date: string; weight: number }[];
 
   if (!sorted.length) return null;
 
   const latestDate = new Date(sorted[sorted.length - 1].date);
-  const cutoff = new Date(latestDate);
-  cutoff.setDate(cutoff.getDate() - 30);
-  const window30 = sorted.filter(r => new Date(r.date) >= cutoff);
+  const latestWeight = sorted[sorted.length - 1].weight;
+
+  const cutoff30 = new Date(latestDate);
+  cutoff30.setDate(cutoff30.getDate() - 30);
+  const window30 = sorted.filter(r => new Date(r.date) >= cutoff30);
 
   if (window30.length < 7) return { insufficient: true };
 
-  const firstMs = new Date(window30[0].date).getTime();
-  const lastMs = new Date(window30[window30.length - 1].date).getTime();
-  const points = window30.map(r => ({
-    x: Math.round((new Date(r.date).getTime() - firstMs) / 86400000),
-    y: r.weight as number,
-  }));
+  const slope30 = dailySlope(window30);
+  if (slope30 === null) return { insufficient: true };
 
-  const reg = calcTrend(points);
-  if (!reg) return { insufficient: true };
+  const cutoff7 = new Date(latestDate);
+  cutoff7.setDate(cutoff7.getDate() - 7);
+  const window7 = sorted.filter(r => new Date(r.date) >= cutoff7);
 
-  const lastDays = Math.round((lastMs - firstMs) / 86400000);
-  const predicted = parseFloat(Math.max(0, reg.slope * (lastDays + 28) + reg.intercept).toFixed(1));
+  // 7일 기록 3개 이상이면 가중 평균, 미만이면 30일 기준만 사용
+  let finalDailyChange: number;
+  if (window7.length >= 3) {
+    const slope7 = dailySlope(window7);
+    finalDailyChange = slope7 !== null
+      ? slope30 * 0.6 + slope7 * 0.4
+      : slope30;
+  } else {
+    finalDailyChange = slope30;
+  }
+
+  const predicted = parseFloat(Math.max(0, latestWeight + finalDailyChange * 28).toFixed(1));
   return { value: predicted };
 }
 
@@ -472,7 +493,7 @@ export default function DashboardPage() {
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5 flex items-center gap-1">
                   <Flame className="w-3 h-3 text-orange-400" />
                   {'value' in recentPrediction
-                    ? <>최근 30일 흐름 기준 4주 후 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;예상</>
+                    ? <>최근 흐름 기준 4주 후 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;예상</>
                     : '예측하려면 최근 기록이 조금 더 필요해요 📝'}
                 </p>
               )}
