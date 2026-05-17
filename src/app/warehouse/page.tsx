@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Trash2,
   UploadCloud,
@@ -39,6 +41,7 @@ export default function WarehousePage() {
   const [isAddingManual, setIsAddingManual] = useState(false);
   const [form, setForm] = useState({ name: '', content: '', category: '건강검진' as '건강검진' | '보험' });
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [viewingDoc, setViewingDoc] = useState<any | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const TEXT_EXTENSIONS = ['.txt', '.md', '.csv', '.json', '.log', '.tsv'];
@@ -280,7 +283,8 @@ export default function WarehousePage() {
               {filteredDocs.map((doc) => (
                 <div
                   key={doc.id}
-                  className="bg-white px-4 sm:px-5 py-3.5 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] hover:border-[var(--accent-soft)] transition-all group relative"
+                  onClick={() => setViewingDoc(doc)}
+                  className="bg-white px-4 sm:px-5 py-3.5 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] hover:border-[var(--accent-soft)] transition-all group relative cursor-pointer"
                 >
                   {copyStatus === doc.id && (
                     <div className="absolute inset-0 bg-[var(--cta)] flex items-center justify-center text-white z-10 rounded-2xl">
@@ -310,7 +314,7 @@ export default function WarehousePage() {
                     </div>
                     <div className="relative shrink-0 flex items-center">
                       <button
-                        onClick={() => setOpenMenuId(openMenuId === doc.id ? null : doc.id)}
+                        onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === doc.id ? null : doc.id); }}
                         className="p-2 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--surface-2)] rounded-xl transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
                         aria-label="더보기 메뉴"
                       >
@@ -364,6 +368,73 @@ export default function WarehousePage() {
 
       </div>
       
+      {/* Viewer Modal (read-only, markdown rendered) */}
+      {viewingDoc && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] px-0 pt-0 pb-[68px] sm:p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setViewingDoc(null); }}
+        >
+          <div className="bg-[var(--surface-0)] w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] border border-[var(--border)] shadow-[var(--shadow-elevated)] max-h-[92dvh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-[var(--border)] shrink-0">
+              <div className="min-w-0 pr-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    viewingDoc.category === '보험' ? 'bg-violet-50 text-violet-600' : 'bg-[var(--accent-muted)] text-[var(--accent)]'
+                  }`}>{viewingDoc.category}</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">{viewingDoc.date}</span>
+                </div>
+                <h3 className="text-[17px] font-black text-[var(--text-primary)] leading-snug">{viewingDoc.name}</h3>
+              </div>
+              <button
+                onClick={() => setViewingDoc(null)}
+                className="p-2 hover:bg-[var(--surface-2)] rounded-xl transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0"
+                aria-label="닫기"
+              >
+                <X className="w-5 h-5 text-[var(--text-muted)]" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+              {viewingDoc.content ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({children}) => <h1 className="text-lg font-black text-[var(--text-primary)] mt-4 mb-2 first:mt-0">{children}</h1>,
+                    h2: ({children}) => <h2 className="text-base font-black text-[var(--text-primary)] mt-3 mb-1.5 first:mt-0">{children}</h2>,
+                    h3: ({children}) => <h3 className="text-sm font-black text-[var(--text-primary)] mt-2 mb-1 first:mt-0">{children}</h3>,
+                    p: ({children}) => <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-2">{children}</p>,
+                    strong: ({children}) => <strong className="font-black text-[var(--text-primary)]">{children}</strong>,
+                    ul: ({children}) => <ul className="list-disc pl-5 space-y-1 mb-2">{children}</ul>,
+                    ol: ({children}) => <ol className="list-decimal pl-5 space-y-1 mb-2">{children}</ol>,
+                    li: ({children}) => <li className="text-sm text-[var(--text-secondary)] leading-relaxed">{children}</li>,
+                    hr: () => <hr className="border-[var(--border)] my-4" />,
+                    blockquote: ({children}) => <blockquote className="border-l-2 border-[var(--accent)] pl-3 text-[var(--text-muted)] italic my-2">{children}</blockquote>,
+                    code: ({children}) => <code className="bg-[var(--surface-2)] px-1 py-0.5 rounded text-xs font-mono text-[var(--text-primary)]">{children}</code>,
+                  }}
+                >
+                  {viewingDoc.content}
+                </ReactMarkdown>
+              ) : (
+                <p className="text-[var(--text-muted)] text-sm text-center py-8">내용이 없습니다.</p>
+              )}
+            </div>
+
+            {/* Footer: 수정하기 버튼 */}
+            <div className="px-6 pb-6 pt-4 border-t border-[var(--border)] shrink-0">
+              <button
+                onClick={() => { openEdit(viewingDoc); setViewingDoc(null); }}
+                className="w-full py-3.5 bg-gradient-to-r from-[var(--accent)] to-cyan-500 hover:opacity-90 text-white rounded-2xl font-black text-sm transition-all active:scale-[0.98] shadow-md shadow-cyan-200 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Edit3 className="w-4 h-4" aria-hidden="true" />
+                수정하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Manual Entry / Edit Modal */}
       {(isAddingManual || editingDoc) && (
         <div

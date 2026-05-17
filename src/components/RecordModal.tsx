@@ -53,8 +53,6 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
   };
 
   const [formData, setFormData] = useState<NewHealthRecord>(blankForm);
-  const [sleepH, setSleepH] = useState(7);
-  const [sleepM, setSleepM] = useState(0);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const showToast = (message: string, type: 'success' | 'error') => setToast({ message, type });
 
@@ -69,10 +67,6 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
         ...existing,
         memo: existing.memo || '',
       });
-      const h = Math.floor(existing.sleep_hours);
-      const m = Math.round((existing.sleep_hours - h) * 60);
-      setSleepH(h);
-      setSleepM(m);
     } else {
       const latest = records.length > 0
         ? [...records].sort((a, b) => b.date.localeCompare(a.date))[0]
@@ -94,17 +88,8 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
         mounjaro_flag:              latest?.mounjaro_flag              ?? false,
         mounjaro_dose:              latest?.mounjaro_dose              ?? 0,
       });
-      
-      const h = Math.floor(latest?.sleep_hours ?? 7);
-      const m = Math.round(((latest?.sleep_hours ?? 7) - h) * 60);
-      setSleepH(h);
-      setSleepM(m);
     }
   }, [isOpen, initialDate]);
-
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, sleep_hours: sleepH + (sleepM / 60) }));
-  }, [sleepH, sleepM]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -258,53 +243,20 @@ export function RecordModal({ isOpen, onClose, initialDate }: RecordModalProps) 
                   <h3 className="text-[14px] font-black text-[var(--text-primary)]">생활 패턴 & 치료</h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className={labelClass}>수면 시간</label>
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <select
-                          value={sleepH}
-                          onChange={(e) => setSleepH(parseInt(e.target.value))}
-                          className={`${inputClass} appearance-none pr-8`}
-                        >
-                          {Array.from({ length: 25 }).map((_, i) => (
-                            <option key={i} value={i}>{i}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[var(--text-muted)] pointer-events-none">H</span>
-                      </div>
-                      <div className="relative flex-1">
-                        <select
-                          value={sleepM}
-                          onChange={(e) => setSleepM(parseInt(e.target.value))}
-                          className={`${inputClass} appearance-none pr-8`}
-                        >
-                          {[0, 10, 20, 30, 40, 50].map((m) => (
-                            <option key={m} value={m}>{m}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[var(--text-muted)] pointer-events-none">M</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>배변 상태</label>
-                    <div className="h-[46px] flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, bowel_condition: prev.bowel_condition === 'good' ? 'normal' : 'good' }))}
-                        className={`w-full h-full rounded-xl border font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                          formData.bowel_condition === 'good'
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm'
-                            : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'
-                        }`}
-                      >
-                        <div className={`w-2 h-2 rounded-full ${formData.bowel_condition === 'good' ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-                        배변 성공
-                      </button>
-                    </div>
-                  </div>
+                <div>
+                  <label className={labelClass}>배변 상태</label>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, bowel_condition: prev.bowel_condition === 'good' ? 'normal' : 'good' }))}
+                    className={`w-full h-[46px] rounded-xl border font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      formData.bowel_condition === 'good'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm'
+                        : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'
+                    }`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${formData.bowel_condition === 'good' ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                    배변 성공
+                  </button>
                 </div>
 
                 <div className="bg-[var(--surface-2)] rounded-xl border border-[var(--border)] divide-y divide-[var(--border-subtle)] px-4">
