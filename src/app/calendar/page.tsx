@@ -191,7 +191,7 @@ export default function CalendarPage() {
                     <div className="flex gap-0.5 items-center">
                       {record.alcohol_flag && <Wine className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500" aria-hidden="true" />}
                       {record.bowel_condition === 'good' && <Smile className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500" aria-hidden="true" />}
-                      {record.memo?.trim() && <StickyNote className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400" aria-hidden="true" />}
+                      {record.memo?.trim() && <StickyNote className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-400" aria-hidden="true" />}
                       {record.mounjaro_flag && (
                         <span
                           className="text-[6px] sm:text-[7px] font-black px-1 rounded-full text-white whitespace-nowrap"
