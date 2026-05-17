@@ -145,7 +145,11 @@ export default function WarehousePage() {
   const saveEdit = () => {
     if (editingDoc) {
       updateDoc(editingDoc.id, { name: form.name, content: form.content, category: form.category });
+      if (activeTab !== '전체' && activeTab !== form.category) {
+        setActiveTab(form.category);
+      }
       setEditingDoc(null);
+      showToast('자료가 저장됐어요.');
     }
   };
 
@@ -158,8 +162,12 @@ export default function WarehousePage() {
       date:     new Date().toISOString().split('T')[0],
       size:     '수동 입력',
     });
+    if (activeTab !== '전체' && activeTab !== form.category) {
+      setActiveTab(form.category);
+    }
     setIsAddingManual(false);
     setForm({ name: '', content: '', category: '건강검진' });
+    showToast('자료가 등록됐어요.');
   };
 
   return (
