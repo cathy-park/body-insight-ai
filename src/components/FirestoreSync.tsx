@@ -8,19 +8,23 @@ import { Toast } from '@/components/Toast';
  * Firestore의 사용자 데이터를 실시간 구독하여, 타 기기에서의 추가/수정/삭제를 즉시 동기화합니다.
  */
 export function FirestoreSync() {
-  const { currentUserId, importRecordsFromFirestore } = useHealthStore();
+  const { currentUserId, importRecordsFromFirestore, importDocsFromFirestore } = useHealthStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  
-  // 컴포넌트 마운트 당 1회만 최초 알림 토스트를 띄우기 위한 ref
+
   const isFirstLoadRef = useRef(true);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | null = null;
+    let unsubscribeRecords: (() => void) | null = null;
+    let unsubscribeDocs: (() => void) | null = null;
     let active = true;
 
     async function startSync() {
       try {
-        const [{ isFirebaseEnabled }, { getFirestoreUserId }, { subscribeToBodyRecords }] = await Promise.all([
+        const [
+          { isFirebaseEnabled },
+          { getFirestoreUserId },
+          { subscribeToBodyRecords, subscribeToWarehouseDocs, bulkUpsertWarehouseDocs },
+        ] = await Promise.all([
           import('@/lib/firebase'),
           import('@/services/userService'),
           import('@/services/healthRecordService'),
@@ -30,18 +34,35 @@ export function FirestoreSync() {
 
         const fsUserId = getFirestoreUserId(currentUserId);
 
-        // 🔥 Firestore 실시간 컬렉션 리스너 구동 (Web Socket 기반 스트리밍)
-        unsubscribe = subscribeToBodyRecords(fsUserId, (records) => {
+        // 인바디 기록 실시간 구독
+        unsubscribeRecords = subscribeToBodyRecords(fsUserId, (records) => {
           if (!active) return;
-
-          // Zustand 스토어 1:1 완벽 동기화 (추가, 수정, 삭제 모두 완벽 대응)
           importRecordsFromFirestore(records);
 
-          // 최초에 데이터를 가져왔을 때만 성공 안내 토스트 띄우기
           if (isFirstLoadRef.current && records.length > 0) {
             isFirstLoadRef.current = false;
             setToast({ message: `서버와 연결되었습니다. 건강 기록 실시간 동기화 중 ⚡`, type: 'success' });
           }
+        });
+
+        // 건강자료실 문서 실시간 구독 (마이그레이션 포함)
+        const localDocs = useHealthStore.getState().userDocs[currentUserId] || [];
+
+        unsubscribeDocs = subscribeToWarehouseDocs(fsUserId, async (snapshotDocs) => {
+          if (!active) return;
+
+          // 마이그레이션: Firestore가 비어있고 로컬에 문서가 있으면 업로드 후 대기
+          if (snapshotDocs.length === 0 && localDocs.length > 0) {
+            try {
+              await bulkUpsertWarehouseDocs(fsUserId, localDocs);
+            } catch (err) {
+              console.error('[FirestoreSync] 자료 마이그레이션 실패:', err);
+            }
+            // 업로드 후 onSnapshot이 다시 발화하여 importDocsFromFirestore가 호출됨
+            return;
+          }
+
+          importDocsFromFirestore(snapshotDocs);
         });
 
       } catch (err) {
@@ -49,18 +70,15 @@ export function FirestoreSync() {
       }
     }
 
-    // 동기화 시작 전 ref 리셋 (유저 ID 바뀔 때 대비)
     isFirstLoadRef.current = true;
     startSync();
 
-    // Cleanup: 컴포넌트 언마운트 혹은 currentUserId 변경 시 이전 리스너 완전 해제!
     return () => {
       active = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      unsubscribeRecords?.();
+      unsubscribeDocs?.();
     };
-  }, [currentUserId, importRecordsFromFirestore]);
+  }, [currentUserId, importRecordsFromFirestore, importDocsFromFirestore]);
 
   return toast ? (
     <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />

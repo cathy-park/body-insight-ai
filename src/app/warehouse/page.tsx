@@ -371,10 +371,10 @@ export default function WarehousePage() {
       {/* Viewer Modal (read-only, markdown rendered) */}
       {viewingDoc && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] px-0 pt-0 pb-[68px] sm:p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] sm:p-4"
           onClick={(e) => { if (e.target === e.currentTarget) setViewingDoc(null); }}
         >
-          <div className="bg-[var(--surface-0)] w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] border border-[var(--border)] shadow-[var(--shadow-elevated)] max-h-[92dvh] overflow-hidden flex flex-col">
+          <div className="bg-[var(--surface-0)] w-full max-w-lg h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-t-[28px] sm:rounded-[28px] border-x-0 border-t-0 sm:border border-[var(--border)] shadow-[var(--shadow-elevated)] overflow-hidden flex flex-col">
             {/* Header */}
             <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-[var(--border)] shrink-0">
               <div className="min-w-0 pr-3">
@@ -442,11 +442,12 @@ export default function WarehousePage() {
       {/* Manual Entry / Edit Modal */}
       {(isAddingManual || editingDoc) && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] px-0 pt-0 pb-[68px] sm:p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999] sm:p-4"
           onClick={(e) => { if (e.target === e.currentTarget) { setIsAddingManual(false); setEditingDoc(null); } }}
         >
-          <div className="bg-[var(--surface-0)] w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] border border-[var(--border)] shadow-[var(--shadow-elevated)] p-6 space-y-5 max-h-[92dvh] overflow-y-auto">
-            <div className="flex items-center justify-between">
+          <div className="bg-[var(--surface-0)] w-full max-w-lg h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-t-[28px] sm:rounded-[28px] border-x-0 border-t-0 sm:border border-[var(--border)] shadow-[var(--shadow-elevated)] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] shrink-0 bg-white sm:rounded-t-[28px]">
               <h3 className="text-[17px] font-black text-[var(--text-primary)]">{isAddingManual ? '새 자료 등록' : '자료 수정'}</h3>
               <button
                 onClick={() => { setIsAddingManual(false); setEditingDoc(null); }}
@@ -456,7 +457,9 @@ export default function WarehousePage() {
                 <X className="w-5 h-5 text-[var(--text-muted)]" />
               </button>
             </div>
-            <div className="space-y-4">
+
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
               <div className="flex gap-2">
                 {['건강검진', '보험'].map(cat => (
                   <button
@@ -483,16 +486,20 @@ export default function WarehousePage() {
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
                 placeholder="내용을 입력하세요."
-                className="w-full h-64 px-4 py-3 bg-white border border-[var(--border)] rounded-xl text-sm leading-relaxed outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+                className="w-full flex-1 min-h-[240px] sm:h-64 px-4 py-3 bg-white border border-[var(--border)] rounded-xl text-sm leading-relaxed outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
               />
             </div>
-            <button
-              onClick={editingDoc ? saveEdit : handleAddManual}
-              className="w-full py-4 bg-gradient-to-r from-[var(--accent)] to-cyan-500 hover:opacity-90 text-white rounded-2xl font-black text-sm transition-all active:scale-[0.98] shadow-md shadow-cyan-200 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Check className="w-4 h-4" aria-hidden="true" />
-              {editingDoc ? '저장 완료' : '등록 완료'}
-            </button>
+
+            {/* Footer */}
+            <div className="px-6 pb-6 pt-4 border-t border-[var(--border)] shrink-0">
+              <button
+                onClick={editingDoc ? saveEdit : handleAddManual}
+                className="w-full py-3.5 bg-gradient-to-r from-[var(--accent)] to-cyan-500 hover:opacity-90 text-white rounded-2xl font-black text-sm transition-all active:scale-[0.98] shadow-md shadow-cyan-200 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Check className="w-4 h-4" aria-hidden="true" />
+                {editingDoc ? '저장 완료' : '등록 완료'}
+              </button>
+            </div>
           </div>
         </div>
       )}

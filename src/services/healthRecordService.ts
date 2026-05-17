@@ -278,3 +278,97 @@ export async function getAiReports(firestoreUserId: string): Promise<Record<stri
     return [];
   }
 }
+
+// ── warehouseDocs CRUD ────────────────────────────────────────────
+
+export async function upsertWarehouseDoc(
+  firestoreUserId: string,
+  warehouseDoc: Record<string, any>,
+): Promise<void> {
+  if (!db) return;
+  try {
+    const ref = doc(db, 'users', firestoreUserId, 'warehouseDocs', warehouseDoc.id);
+    await setDoc(ref, {
+      appDocId:  warehouseDoc.id,
+      name:      warehouseDoc.name ?? '',
+      content:   warehouseDoc.content ?? null,
+      category:  warehouseDoc.category ?? '건강검진',
+      date:      warehouseDoc.date ?? '',
+      size:      warehouseDoc.size ?? '',
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] upsertWarehouseDoc 오류:', err);
+  }
+}
+
+export async function deleteWarehouseDoc(
+  firestoreUserId: string,
+  docId: string,
+): Promise<void> {
+  if (!db) return;
+  try {
+    await deleteDoc(doc(db, 'users', firestoreUserId, 'warehouseDocs', docId));
+  } catch (err) {
+    console.error('[Firestore] deleteWarehouseDoc 오류:', err);
+  }
+}
+
+export function subscribeToWarehouseDocs(
+  firestoreUserId: string,
+  callback: (docs: Record<string, any>[]) => void,
+): () => void {
+  if (!db) return () => {};
+  try {
+    const col = collection(db, 'users', firestoreUserId, 'warehouseDocs');
+    const q   = query(col, orderBy('date', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      const docs = snap.docs.map(d => {
+        const data = d.data() as Record<string, any>;
+        return {
+          id:       data.appDocId || d.id,
+          name:     data.name ?? '',
+          content:  data.content ?? null,
+          category: data.category ?? '건강검진',
+          date:     data.date ?? '',
+          size:     data.size ?? '',
+        };
+      });
+      callback(docs);
+    }, (err) => {
+      console.error('[Firestore] subscribeToWarehouseDocs 실시간 오류:', err);
+    });
+    return unsub;
+  } catch (err) {
+    console.error('[Firestore] subscribeToWarehouseDocs 등록 실패:', err);
+    return () => {};
+  }
+}
+
+export async function bulkUpsertWarehouseDocs(
+  firestoreUserId: string,
+  docs: Record<string, any>[],
+): Promise<void> {
+  if (!db || docs.length === 0) return;
+  try {
+    const CHUNK = 400;
+    for (let i = 0; i < docs.length; i += CHUNK) {
+      const batch = writeBatch(db);
+      docs.slice(i, i + CHUNK).forEach(d => {
+        const ref = doc(db!, 'users', firestoreUserId, 'warehouseDocs', d.id);
+        batch.set(ref, {
+          appDocId:  d.id,
+          name:      d.name ?? '',
+          content:   d.content ?? null,
+          category:  d.category ?? '건강검진',
+          date:      d.date ?? '',
+          size:      d.size ?? '',
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      });
+      await batch.commit();
+    }
+  } catch (err) {
+    console.error('[Firestore] bulkUpsertWarehouseDocs 오류:', err);
+  }
+}

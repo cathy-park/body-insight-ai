@@ -31,6 +31,30 @@ async function fsSyncBulk(appUserId: string, records: HealthRecord[]) {
   }
 }
 
+async function fsSyncDoc(appUserId: string, warehouseDoc: any) {
+  try {
+    const [{ upsertWarehouseDoc }, { getFirestoreUserId }] = await Promise.all([
+      import('@/services/healthRecordService'),
+      import('@/services/userService'),
+    ]);
+    await upsertWarehouseDoc(getFirestoreUserId(appUserId), warehouseDoc);
+  } catch (err) {
+    console.error('[Firestore] 자료 저장 실패:', err);
+  }
+}
+
+async function fsSyncDeleteDoc(appUserId: string, docId: string) {
+  try {
+    const [{ deleteWarehouseDoc }, { getFirestoreUserId }] = await Promise.all([
+      import('@/services/healthRecordService'),
+      import('@/services/userService'),
+    ]);
+    await deleteWarehouseDoc(getFirestoreUserId(appUserId), docId);
+  } catch (err) {
+    console.error('[Firestore] 자료 삭제 실패:', err);
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────
 
 interface HealthState {
@@ -53,6 +77,8 @@ interface HealthState {
   addBulkRecords: (records: NewHealthRecord[]) => void;
   /** Firestore에서 불러온 기록을 병합합니다 (중복 날짜는 건너뜁니다) */
   importRecordsFromFirestore: (records: HealthRecord[]) => void;
+  /** Firestore에서 불러온 건강자료실 문서를 로컬에 반영합니다 */
+  importDocsFromFirestore: (docs: any[]) => void;
   clearCurrentUserData: () => void;
   updateNote: (note: string) => void;
   getNote: () => string;
@@ -171,11 +197,16 @@ export const useHealthStore = create<HealthState>()(
       importRecordsFromFirestore: (firestoreRecords) => {
         set((state) => {
           const userId = state.currentUserId;
-          // Firestore의 기록들을 로컬에 1:1로 미러링하여 삽입/수정/삭제를 완벽히 반영합니다.
           const updated = [...firestoreRecords]
             .sort((a, b) => a.date.localeCompare(b.date));
           return { userRecords: { ...state.userRecords, [userId]: updated } };
         });
+      },
+
+      importDocsFromFirestore: (firestoreDocs) => {
+        set((state) => ({
+          userDocs: { ...state.userDocs, [state.currentUserId]: firestoreDocs },
+        }));
       },
 
       clearCurrentUserData: () => set((state) => ({
@@ -187,21 +218,32 @@ export const useHealthStore = create<HealthState>()(
       updateNote: (note) => set((state) => ({ userNotes: { ...state.userNotes, [state.currentUserId]: note } })),
       getNote: () => get().userNotes[get().currentUserId] || '',
       getRecords: () => get().userRecords[get().currentUserId] || [],
-      addDoc: (doc) => set((state) => ({
-        userDocs: {
-          ...state.userDocs,
-          [state.currentUserId]: [{ ...doc, category: doc.category || '건강검진' }, ...(state.userDocs[state.currentUserId] || [])]
-        }
-      })),
-      updateDoc: (docId, updates) => set((state) => ({
-        userDocs: {
-          ...state.userDocs,
-          [state.currentUserId]: (state.userDocs[state.currentUserId] || []).map(d =>
-            d.id === docId ? { ...d, ...updates } : d
-          )
-        }
-      })),
-      deleteDoc: (docId) => set((state) => ({ userDocs: { ...state.userDocs, [state.currentUserId]: (state.userDocs[state.currentUserId] || []).filter(d => d.id !== docId) } })),
+      addDoc: (newDoc) => {
+        const docWithCategory = { ...newDoc, category: newDoc.category || '건강검진' };
+        set((state) => ({
+          userDocs: {
+            ...state.userDocs,
+            [state.currentUserId]: [docWithCategory, ...(state.userDocs[state.currentUserId] || [])]
+          }
+        }));
+        fsSyncDoc(get().currentUserId, docWithCategory);
+      },
+      updateDoc: (docId, updates) => {
+        set((state) => ({
+          userDocs: {
+            ...state.userDocs,
+            [state.currentUserId]: (state.userDocs[state.currentUserId] || []).map(d =>
+              d.id === docId ? { ...d, ...updates } : d
+            )
+          }
+        }));
+        const updatedDoc = (get().userDocs[get().currentUserId] || []).find(d => d.id === docId);
+        if (updatedDoc) fsSyncDoc(get().currentUserId, updatedDoc);
+      },
+      deleteDoc: (docId) => {
+        set((state) => ({ userDocs: { ...state.userDocs, [state.currentUserId]: (state.userDocs[state.currentUserId] || []).filter(d => d.id !== docId) } }));
+        fsSyncDeleteDoc(get().currentUserId, docId);
+      },
       getDocs: () => get().userDocs[get().currentUserId] || [],
       addChatMessage: (msg) => set((state) => ({
         userChats: {
