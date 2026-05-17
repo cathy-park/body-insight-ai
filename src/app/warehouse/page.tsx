@@ -401,20 +401,24 @@ export default function WarehousePage() {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    h1: ({children}) => <h1 className="text-lg font-black text-[var(--text-primary)] mt-4 mb-2 first:mt-0">{children}</h1>,
-                    h2: ({children}) => <h2 className="text-base font-black text-[var(--text-primary)] mt-3 mb-1.5 first:mt-0">{children}</h2>,
-                    h3: ({children}) => <h3 className="text-sm font-black text-[var(--text-primary)] mt-2 mb-1 first:mt-0">{children}</h3>,
-                    p: ({children}) => <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-2">{children}</p>,
-                    strong: ({children}) => <strong className="font-black text-[var(--text-primary)]">{children}</strong>,
-                    ul: ({children}) => <ul className="list-disc pl-5 space-y-1 mb-2">{children}</ul>,
-                    ol: ({children}) => <ol className="list-decimal pl-5 space-y-1 mb-2">{children}</ol>,
-                    li: ({children}) => <li className="text-sm text-[var(--text-secondary)] leading-relaxed">{children}</li>,
-                    hr: () => <hr className="border-[var(--border)] my-4" />,
-                    blockquote: ({children}) => <blockquote className="border-l-2 border-[var(--accent)] pl-3 text-[var(--text-muted)] italic my-2">{children}</blockquote>,
-                    code: ({children}) => <code className="bg-[var(--surface-2)] px-1 py-0.5 rounded text-xs font-mono text-[var(--text-primary)]">{children}</code>,
+                    h1: ({children}) => <h1 className="text-[15px] font-bold text-[var(--text-primary)] mt-5 mb-2 first:mt-0 pb-1.5 border-b border-[var(--border-subtle)]">{children}</h1>,
+                    h2: ({children}) => <h2 className="text-sm font-bold text-[var(--text-primary)] mt-4 mb-1.5 first:mt-0">{children}</h2>,
+                    h3: ({children}) => <h3 className="text-sm font-semibold text-[var(--text-secondary)] mt-3 mb-1 first:mt-0">{children}</h3>,
+                    p: ({children}) => <p className="text-sm text-[var(--text-secondary)] leading-[1.75] mb-3 last:mb-0">{children}</p>,
+                    strong: ({children}) => <strong className="font-semibold text-[var(--text-primary)]">{children}</strong>,
+                    b: ({children}) => <b className="font-semibold text-[var(--text-primary)]">{children}</b>,
+                    em: ({children}) => <em className="italic">{children}</em>,
+                    del: ({children}) => <del className="line-through text-[var(--text-muted)]">{children}</del>,
+                    ul: ({children}) => <ul className="list-disc pl-5 space-y-1.5 mb-3 text-sm text-[var(--text-secondary)]">{children}</ul>,
+                    ol: ({children}) => <ol className="list-decimal pl-5 space-y-1.5 mb-3 text-sm text-[var(--text-secondary)]">{children}</ol>,
+                    li: ({children}) => <li className="leading-relaxed">{children}</li>,
+                    hr: () => <hr className="border-[var(--border-subtle)] my-5" />,
+                    blockquote: ({children}) => <blockquote className="border-l-2 border-[var(--accent-soft)] pl-3 text-[var(--text-muted)] italic my-3">{children}</blockquote>,
+                    code: ({children}) => <code className="bg-[var(--surface-2)] px-1.5 py-0.5 rounded text-[11px] font-mono text-[var(--text-primary)]">{children}</code>,
+                    a: ({children, href}) => <a href={href} className="text-[var(--accent)] underline underline-offset-2" target="_blank" rel="noopener noreferrer">{children}</a>,
                   }}
                 >
-                  {viewingDoc.content}
+                  {(viewingDoc.content as string).replace(/\r\n/g, '\n').replace(/\r/g, '\n')}
                 </ReactMarkdown>
               ) : (
                 <p className="text-[var(--text-muted)] text-sm text-center py-8">내용이 없습니다.</p>
