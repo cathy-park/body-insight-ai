@@ -84,6 +84,8 @@ function calcTrend(points: { x: number; y: number }[]): { slope: number; interce
   return { slope, intercept };
 }
 
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
+
 // 날짜 오름차순 정렬된 weight 기록 배열의 선형회귀 기울기(일평균 변화량)를 반환.
 function dailySlope(window: { date: string; weight: number }[]): number | null {
   const firstMs = new Date(window[0].date).getTime();
@@ -94,13 +96,17 @@ function dailySlope(window: { date: string; weight: number }[]): number | null {
   return calcTrend(points)?.slope ?? null;
 }
 
-// 4주 후 체중 예측: 최근 30일 흐름(60%) + 최근 7일 흐름(40%) 가중 평균.
-// 최근 7일 기록 3개 미만이면 30일 기준만 사용.
-// 최근 30일 기록 7개 미만이면 { insufficient: true } 반환.
-// weight 기록이 없으면 null 반환.
+// 4주 후 체중 예측 (안정화 버전)
+// ① slope30(70%) + cappedSlope7(30%) 가중 평균
+// ② slope7는 단기 급변 흡수를 위해 ±0.07kg/일 clamp
+// ③ finalDailyChange는 ±0.06kg/일 clamp
+// ④ 예측값은 최신 체중 ±2.0kg 이내 clamp
+// ⑤ 최근 7일 변동폭 ≥ 1.5kg 이면 highVolatility: true
+// 최근 30일 기록 7개 미만 → { insufficient: true }
+// weight 기록 없음 → null
 function calcRecentPrediction(
   allRecords: { date: string; weight?: number | null }[],
-): { value: number } | { insufficient: true } | null {
+): { value: number; highVolatility: boolean } | { insufficient: true } | null {
   const sorted = [...allRecords]
     .filter(r => r.weight && r.weight > 0)
     .sort((a, b) => a.date.localeCompare(b.date)) as { date: string; weight: number }[];
@@ -123,19 +129,32 @@ function calcRecentPrediction(
   cutoff7.setDate(cutoff7.getDate() - 7);
   const window7 = sorted.filter(r => new Date(r.date) >= cutoff7);
 
-  // 7일 기록 3개 이상이면 가중 평균, 미만이면 30일 기준만 사용
+  // 변동성 감지: 최근 7일 최대-최소 ≥ 1.5kg
+  const highVolatility = window7.length >= 2
+    ? Math.max(...window7.map(r => r.weight)) - Math.min(...window7.map(r => r.weight)) >= 1.5
+    : false;
+
+  // 7일 기록 3개 이상이면 가중 평균 적용, 미만이면 30일 기준만 사용
   let finalDailyChange: number;
   if (window7.length >= 3) {
     const slope7 = dailySlope(window7);
-    finalDailyChange = slope7 !== null
-      ? slope30 * 0.6 + slope7 * 0.4
+    // ② 7일 slope를 ±0.07kg/일로 제한해 단기 급변이 4주 예측을 과도하게 왜곡하지 않도록 처리
+    const cappedSlope7 = slope7 !== null ? clamp(slope7, -0.07, 0.07) : null;
+    finalDailyChange = cappedSlope7 !== null
+      ? slope30 * 0.7 + cappedSlope7 * 0.3
       : slope30;
   } else {
     finalDailyChange = slope30;
   }
 
-  const predicted = parseFloat(Math.max(0, latestWeight + finalDailyChange * 28).toFixed(1));
-  return { value: predicted };
+  // ③ 합산된 일평균 변화량도 ±0.06kg/일 이내로 제한
+  finalDailyChange = clamp(finalDailyChange, -0.06, 0.06);
+
+  // ④ 예측값을 현재 체중 ±2.0kg 이내로 제한
+  const rawPredicted = latestWeight + finalDailyChange * 28;
+  const predicted = parseFloat(clamp(rawPredicted, latestWeight - 2.0, latestWeight + 2.0).toFixed(1));
+
+  return { value: predicted, highVolatility };
 }
 
 function addDays(dateStr: string, days: number): string {
@@ -493,7 +512,9 @@ export default function DashboardPage() {
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5 flex items-center gap-1">
                   <Flame className="w-3 h-3 text-orange-400" />
                   {'value' in recentPrediction
-                    ? <>최근 흐름 기준 4주 후 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;예상</>
+                    ? recentPrediction.highVolatility
+                      ? <>4주 후 약 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;— 최근 변동이 커서 참고용으로만 봐주세요 📝</>
+                      : <>최근 흐름 기준 4주 후 약 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;참고 예상</>
                     : '예측하려면 최근 기록이 조금 더 필요해요 📝'}
                 </p>
               )}
