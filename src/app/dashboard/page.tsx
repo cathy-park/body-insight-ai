@@ -84,6 +84,39 @@ function calcTrend(points: { x: number; y: number }[]): { slope: number; interce
   return { slope, intercept };
 }
 
+// 최근 30일 기록 기반 4주 후 체중 예측.
+// 반환: 예측값 { value } | 데이터 부족 { insufficient: true } | weight 지표 없음 null
+function calcRecentPrediction(
+  allRecords: { date: string; weight?: number | null }[],
+): { value: number } | { insufficient: true } | null {
+  const sorted = [...allRecords]
+    .filter(r => r.weight && r.weight > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (!sorted.length) return null;
+
+  const latestDate = new Date(sorted[sorted.length - 1].date);
+  const cutoff = new Date(latestDate);
+  cutoff.setDate(cutoff.getDate() - 30);
+  const window30 = sorted.filter(r => new Date(r.date) >= cutoff);
+
+  if (window30.length < 7) return { insufficient: true };
+
+  const firstMs = new Date(window30[0].date).getTime();
+  const lastMs = new Date(window30[window30.length - 1].date).getTime();
+  const points = window30.map(r => ({
+    x: Math.round((new Date(r.date).getTime() - firstMs) / 86400000),
+    y: r.weight as number,
+  }));
+
+  const reg = calcTrend(points);
+  if (!reg) return { insufficient: true };
+
+  const lastDays = Math.round((lastMs - firstMs) / 86400000);
+  const predicted = parseFloat(Math.max(0, reg.slope * (lastDays + 28) + reg.intercept).toFixed(1));
+  return { value: predicted };
+}
+
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr);
   d.setDate(d.getDate() + days);
@@ -289,13 +322,18 @@ export default function DashboardPage() {
     return base;
   }, [filteredRecords, selectedMetrics]);
 
-  // ── Trend prediction value (4 weeks out) ─────────────────────────
-  const trendPrediction = useMemo(() => {
-    const filteredDates = new Set(filteredRecords.map(r => r.date));
-    const future = chartData.filter(d => !filteredDates.has(d.date));
-    if (!future.length) return null;
-    return future[future.length - 1]?.trendWeight ?? null;
-  }, [chartData, filteredRecords]);
+  // ── Chart trend line: 필터된 데이터 기반 추세선 표시 여부 ──────────
+  const hasTrendLine = useMemo(
+    () => selectedMetrics.includes('weight') && chartData.some(d => d.trendWeight !== null),
+    [chartData, selectedMetrics],
+  );
+
+  // ── 예측 텍스트: 최근 30일 기록 기반 4주 후 예상값 ──────────────────
+  // 기간 필터와 무관하게 항상 최근 30일(전체 records) 기준으로 계산
+  const recentPrediction = useMemo(() => {
+    if (!selectedMetrics.includes('weight')) return null;
+    return calcRecentPrediction(records);
+  }, [records, selectedMetrics]);
 
   const toggleMetric = (metric: string) => {
     const key = metric as MetricKey;
@@ -430,10 +468,12 @@ export default function DashboardPage() {
                 <TrendingUp className="w-3.5 h-3.5" />멀티 트래킹 분석
               </p>
               <h2 className="text-lg font-black text-[var(--text-primary)]">지표별 변화 추이</h2>
-              {trendPrediction && selectedMetrics.includes('weight') && (
+              {selectedMetrics.includes('weight') && recentPrediction !== null && (
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5 flex items-center gap-1">
                   <Flame className="w-3 h-3 text-orange-400" />
-                  현재 추세 기준 4주 후 <span className="font-black text-[var(--text-secondary)]">&nbsp;{trendPrediction}kg</span>&nbsp;예상
+                  {'value' in recentPrediction
+                    ? <>최근 30일 흐름 기준 4주 후 <span className="font-black text-[var(--text-secondary)]">&nbsp;{recentPrediction.value}kg</span>&nbsp;예상</>
+                    : '예측하려면 최근 기록이 조금 더 필요해요 📝'}
                 </p>
               )}
             </div>
@@ -498,7 +538,7 @@ export default function DashboardPage() {
                     />
                   ))}
                   {/* Trend line */}
-                  {selectedMetrics.includes('weight') && trendPrediction && (
+                  {hasTrendLine && (
                     <Line
                       type="monotone"
                       dataKey="trendWeight"
